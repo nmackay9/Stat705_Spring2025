@@ -11,7 +11,7 @@ Aug 21
   : [html](https://jlacasa.github.io/stat705_fall2024/classes/day02_08212024)
 : Intro to legume data; live R code
 : []()
-  : **Complete [survey](https://forms.gle/Anv7f1uFUZDwoDsS9)**{: .label .label-yellow } Due 08/21
+  : **Complete [survey](https://forms.gle/Anv7f1uFUZDwoDsS9)**{: .label .label-yellow } Due ***
 : []()
   : **[New Assignment](https://jlacasa.github.io/stat705_fall2024/assignments/hw1)**{: .label .label-green } Due 08/27
 
