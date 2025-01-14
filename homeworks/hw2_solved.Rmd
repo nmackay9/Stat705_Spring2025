@@ -1,0 +1,83 @@
+---
+title: "Assignment 2 Guide"
+author: "J Lacasa"
+date: "2024-09-20"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+Read the data in the chunk below. Propose a statistical model (using mathematical notation) to describe the relationship between corn yield and plant density, and fit that model to the data.
+
+$$y_i \sim N(\mu_i , \sigma^2),$$ 
+
+$$\mu_i = \beta_0 + \beta_1 \cdot x_i + \beta_2 \cdot x_i^2,$$
+
+where $y_i$ is the yield of the $i$th observation, $\mu_i$ is its mean, $\sigma^2$ is the variance, $x_i$ is the plant density for the $i$th observation, $\beta_0$ is the intercept (i.e., the yield at zero plant density), and $\beta_1$ and $beta_2$ give the shape to the response curve. 
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/corn_example2.csv"
+data <- read.csv(url)
+data %>% 
+  ggplot(aes(plant_density, yield_Mgha))+
+  geom_point()+
+  labs(x = expression(Plant~Density~(plants~m^{-2})), 
+       y = expression(Grain~Yield~(Mg~ha^{-1})))+
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 15), 
+                  ylim = c(0, 16), 
+                  expand = F)+
+  theme(aspect.ratio = 1)
+```
+
+## Answer the following questions:
+
+**a. What is the plant density that maximizes grain yield? Provide a point estimate and some measure of uncertainty.**   
+
+The plant density that maximizes grain yield (opd) is the value of plant density when the first derivative of the model is zero. That means $\widehat{opd} = -\frac{\hat \beta_1}{2 \hat\beta_2}$.  
+
+```{r}
+# fit the model
+m <- lm(yield_Mgha ~ plant_density + I(plant_density^2),
+        data = data)
+coef(m)
+opd_hat <- -coef(m)[2]/(2*coef(m)[3])
+opd_hat
+```  
+
+Then, the $\widehat{opd}$ is `r round(opd_hat,2)` plants per m2. 
+Some uncertainty estimates that can be used to characterize this estimate are the standard error, or a 95\% confidence interval. We can estimate that using the delta method. 
+
+```{r}
+covariance <- vcov(m)
+opd_se_hat <- msm::deltamethod(g = ~ -x2/(2*x3), mean = coef(m), cov = covariance)
+## 1.96 is typically used for approximate confidence intervals
+lower <- opd_hat - 1.96*opd_se_hat
+upper <- opd_hat + 1.96*opd_se_hat
+```
+Then, $s.e.(\widehat{opd})$ is `r round(opd_se_hat,2)` plants per m2, and the 95\% confidence interval is (`r paste(round(as.numeric(lower), 2), round(as.numeric(upper), 2), sep  =", ")`).  
+
+**b.  How much yield do you expect the crop to yield, on average, with 8 plants per m2? What is a good 95% confidence interval for that value?**
+```{r}
+X_new <- data.frame(plant_density = 8)
+predict_a <- predict(m, newdata = X_new, interval = "confidence")
+predict_a
+```
+I expect the crop to yield `r print(round(predict_a[[1]],2))` on average with 8 plants per m2, with a 95\% confidence interval of (`r paste(round(predict_a[[2]],2), round(predict_a[[3]],2), sep = ", ")`). 
+
+**c.  What is a reasonable 95\% confidence interval for observable yields at 8 plants per m2?**
+```{r}
+predict_b <- predict(m, newdata = X_new, interval = "prediction")
+```
+The 95\% prediction interval is (`r paste(round(predict_b[[2]],2), round(predict_b[[3]],2), sep = ", ")`). 
+
+**d.  Which confidence interval would be affected most is the sample size was increased twofold?**
+As sample size increases, the confidence interval that is most affected is the estimation interval because as sample size increases, the accuracy for the $\hat\beta$ increases. The variance in the data $\sigma^2$, however, represents the variability in the data that often times cannot be reduced any more. The prediction interval thus represents also the uncertainty about observing new data.  
+

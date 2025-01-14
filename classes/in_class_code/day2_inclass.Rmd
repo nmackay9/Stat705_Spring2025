@@ -1,0 +1,50 @@
+---
+title: "Untitled"
+author: "J Lacasa"
+date: "2024-08-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+```{r}
+library(tidyverse)
+```
+
+## Data
+```{r}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part1.csv"
+dd <- read.csv(url)
+dd <- dd %>% 
+  dplyr::select(species, agb_g)
+```
+
+```{r}
+summary(dd)
+```
+
+### Model with intercept:
+
+```{r}
+m1 <- lm(agb_g ~ species, data = dd)
+```
+
+```{r}
+model.matrix(m1)
+summary(m1)
+```
+
+### Model without intercept:
+
+```{r}
+m2 <- lm(agb_g ~ 0 + species, data = dd)
+```
+
+```{r}
+model.matrix(m2)
+summary(m2)
+```
+

@@ -1,0 +1,135 @@
+---
+title: "Untitled"
+author: "J Lacasa"
+date: "2024-10-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+### Load the data:  
+
+The data shown here can be found at [https://doi.org/10.1002/agj2.20812](https://doi.org/10.1002/agj2.20812).  
+
+```{r warning=FALSE}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/8_Yield_Plant_Measurements.csv"
+dd_yield <- read_csv(url) %>%
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames") %>% 
+  mutate(across(VT_TissN:R4N, ~ as.numeric(.)))
+
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/1_Site_Characterization.csv"
+dd_soil <- read_csv(url) %>%
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames", 
+         Horizon == "Ap") %>% 
+  mutate(Block = as.numeric(Block), 
+         across(Clay:WC, ~as.numeric(.)))
+
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/4_SoilN.csv"
+dd_N <- read_csv(url) %>%
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames", 
+         Plot_ID %in% dd_yield$Plot_ID, 
+         Sam_Time == "Post") %>% 
+  mutate(across(c(Plot_ID, N_Trt, Plant_N, Side_N, Plant_N_SI, Side_N_SI), ~as.numeric(.)))
+```
+
+
+```{r message=FALSE}
+dd_complete <- dd_yield %>% 
+  left_join(dd_soil) %>% 
+  left_join(dd_N)
+
+dd_complete <- dd_complete %>% 
+  mutate(gyield_14 = GYdry/.94, 
+         N_total = Plant_N_SI + Side_N_SI)
+```
+
+```{r}
+dd_complete %>% 
+  ggplot(aes(N_total, gyield_14))+
+  geom_point()+
+  theme_classic()+
+  labs(x = expression(Total~N~Applied~(kg~ha^{-1})),
+       y = expression(Grain~Yield~(kg~ha^{-1})))
+```
+
+```{r}
+m0 <- lm(gyield_14 ~ N_total, data = dd_complete)
+```
+
+```{r}
+plot(m0$fitted.values, m0$residuals)
+```
+
+
+```{r}
+m1 <- lm(gyield_14 ~ N_total + I(N_total^2), data = dd_complete)
+```
+
+```{r}
+names(dd_complete)
+summary(m1)
+```
+
+
+```{r}
+m_full <- lm(gyield_14 ~ N_total + I(N_total^2), data = dd_complete)
+m_red <- lm(gyield_14 ~ 1, data = dd_complete)
+
+SSE_full <- sum(m_full$residuals^2)
+SSE_red <- sum(m_red$residuals^2)
+
+df_full <- m_full$df.residual
+df_red <- m_red$df.residual
+
+n <- nrow(dd_complete)
+p <- length(coef(m_full))-length(coef(m_red))
+
+F_star <- ((SSE_red-SSE_full)/p) / (SSE_full/(n-p-1))
+(p_value <- df(F_star, df1 = 1, df2 = df_full))
+
+summary(m_full)
+```
+
+```{r}
+summary(m_full)
+
+```
+
+## R2
+```{r}
+SSE_red
+sum((dd_complete$gyield_14 - mean(dd_complete$gyield_14))^2)
+r2 <- 1-(SSE_full/SSE_red)
+
+p <- length(coef(m_full))
+
+r2 - (1-r2)*((3-1)/(n-3))
+
+```
+
+```{r}
+m2 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block , data = dd_complete)
+summary(m2)
+```
+
+
+```{r}
+m3 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM, data = dd_complete)
+m4 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay, data = dd_complete)   
+m5 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay + Sand, data = dd_complete)
+m6 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay + Sand + Silt, data = dd_complete)
+```
+

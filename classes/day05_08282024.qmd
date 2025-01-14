@@ -1,0 +1,124 @@
+---
+title: "Day 5 - 08/28/2024"
+format: html
+editor: visual
+---
+
+## From last class
+
+-   Please submit Assignment 1 today!
+
+-   **A few things to review**
+
+    -   What is an unbiased estimator?\
+        When we use $\hat{\beta}$ as an estimator of $\beta$, there are no systematic mechanisms in the computation of $\hat{\beta}$ that will lead to over/underestimation of $\beta$. That is why we expect to obtain $\beta$ (i.e., the "true" $\beta$) back.
+
+## Estimation
+
+### Point estimates in $\boldsymbol{\beta}$
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+dd_lotus <- read.csv("data/lotus_part1.csv") %>% 
+  transmute(species = factor(species), agb_g) 
+summary(dd_lotus)
+m1 <- lm(agb_g ~ 0 + species, data = dd_lotus)
+```
+
+Let's calculate $\hat{\boldsymbol{\beta}}_{LSE} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}$
+
+```{r}
+X <- model.matrix(m1)
+y <- dd_lotus$agb_g
+(beta_hat <- solve(t(X)%*%X) %*% t(X)%*%y)
+```
+
+```{r}
+coefficients(m1)
+```
+
+### Residuals
+
+```{r}
+residuals <- y - X%*%beta_hat
+```
+
+### Variance $\sigma^2$
+
+-   Perhaps one of the most important parameters we will estimate.\
+-   Prediction accuracy.
+-   Prediction intervals, estimation intervals.
+-   Degrees of freedom. From $n-1$ to $n-p$.
+
+Let's calculate $\hat{\sigma}^2 = \frac{\boldsymbol{\hat{\varepsilon}^T\hat{\varepsilon}}}{n-p} = \frac{RSS}{n-p}$
+
+```{r}
+RSS <- sum(residuals^2)
+n <- nrow(dd_lotus)
+p <- length(beta_hat)
+(sigma2_hat <- RSS/(n-p)) 
+(sigma_hat <- sqrt(sigma2_hat))
+```
+
+```{r}
+summary(m1)$sigma
+```
+
+### Confidence intervals
+
+Confidence intervals are a measure of uncertainty. They are related to other measures of uncertainty, like $\sigma^2$. We know that $$CI = \hat{\beta} \pm t_{dfe, 1 - \alpha/2} \ s.e.,$$ where $t_{\alpha/2, dfe}$ is the t-score that corresponds to the confidence level (i.e., $\alpha$) with the degrees of freedom of the error $\text{rdf}$, and $s.e.$ is the standard error.
+
+-   Why t distribution?
+
+-   Let's calculate the standard error:
+
+```{r}
+unscaled_covariance <- solve(t(X)%*%X)
+```
+
+```{r}
+(se <- sqrt(diag(unscaled_covariance))*sigma_hat)
+```
+
+```{r}
+alpha <- 0.05
+dfe <- n-p
+(t_score <- qt(p=1-alpha/2, df = dfe, lower.tail=T))
+```
+
+```{r}
+se*t_score
+```
+
+```{r}
+data.frame(lower = beta_hat - se*t_score, 
+           upper = beta_hat + se*t_score)
+```
+
+```{r}
+confint(m1)
+```
+
+#### Interpretation
+
+-   "We are 95% confident that ..."
+
+### In `summary`:
+
+```{r}
+summary(m1)
+```
+
+### Let's do the same, from scratch, for continuous data
+
+Live R code [here](https://github.com/jlacasa/stat705_fall2024/blob/main/classes/in_class_code/day5_estimation_example.qmd).
+
+### How much money would you bet on the estimate? Let's do a simulation.
+
+R code [here](https://github.com/jlacasa/stat705_fall2024/blob/main/classes/in_class_code/day5_simulation_example.qmd).
+
+## For next class
+
+-   No reading!
+-   Assignment 1.
+-   Take a look at the schedule.

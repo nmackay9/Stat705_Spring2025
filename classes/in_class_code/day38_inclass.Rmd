@@ -1,0 +1,77 @@
+---
+title: "Day 38 - In class code"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+```
+
+```{r}
+url <-  "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/dd_finalproj.csv"
+dd <- read.csv(url) %>% filter(doy == 237) %>% 
+    filter(species %in% c("A", "D", "E")) 
+
+dd %>% 
+  ggplot(aes(paste(species, trt), crown_g))+
+  geom_jitter()+
+  geom_boxplot(alpha = .6)
+```
+
+```{r}
+dd_clean <- dd %>% 
+  group_by(trt, species) %>% 
+  mutate(outlier = crown_g > (quantile(crown_g, probs = .75)+ 1.5*IQR(crown_g)) |
+           crown_g < (quantile(crown_g, probs = .25) - 1.5*IQR(crown_g)) ) %>% 
+  filter(outlier != TRUE)
+```
+
+```{r}
+# lm(crown_g ~ species+trt + species:trt, data =dd)
+m1 <- lm(crown_g ~ species*trt, data =dd)
+shapiro.test(m1$residuals)
+```
+
+```{r}
+library(mgcv)
+
+m2 <- gam(crown_g ~ species*trt, 
+          family = scat(link = "identity"),
+          data =dd)
+```
+
+```{r}
+coef(m1);coef(m2)
+```
+
+```{r}
+AIC(m1, m2)
+BIC(m1, m2)
+```
+
+```{r}
+summary(m2)
+```
+
+```{r}
+gam.check(m2)
+```
+
+```{r}
+library(emmeans)
+library(multcomp)
+
+lsmeans <- emmeans(m2, ~trt:species, 
+                   contr = list(
+                     c(1,-1, 0,0,0,0), 
+                     c(0,0,1,-1, 0,0),
+                     c(0,0,0,0,1,-1)))
+
+cld(lsmeans, adjust = "sidak", 
+    contr = )
+```
+

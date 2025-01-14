@@ -1,0 +1,180 @@
+---
+title: "Day 15 - 09/23/2024"
+format: html
+editor: visual
+---
+
+## Analysis of Variance: ANOVA   
+
+Helps us answering objectives like finding out "is A different to B or C?", or "do any of these treatments have an effect on the mean?  
+
+Another types of objective (that require other types of modeling tools), for example, would be "to predict y for given levels of A and B" (e.g., predict corn yield with 150 kg N per ha and 20 inches rainfall in the season).
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggpubr)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part4.csv"
+dd <- read.csv(url)
+
+dd_subset <- dd %>% 
+  filter(trt == "ctrl")
+```
+
+
+```{r message=FALSE, warning=FALSE}
+dd %>% 
+  ggplot(aes(species, crown_g))+
+  geom_boxplot(aes(fill = species))+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Species", 
+       y = "Crown biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+Let's fit the model $$y_{ij} \sim N(\mu_{ij}, \sigma^2),$$
+
+$$\mu_{ij} = \mu + \beta_{0j},$$ where $y_{ij}$ is the observation of crown biomass for the $i$th observation of the $j$th species, $\mu{ij}$ is its mean and $\sigma^2$ its variance. The means is described with the overall mean $\mu$ and $\beta_{0j}$, the effect of the $j$th species.
+
+```{r}
+m1 <- lm(crown_g ~ species, data = dd_subset)
+summary(m1)
+```
+
+What's another way of writing out this statistical model?  
+
+[Live R coding.](https://github.com/jlacasa/stat705_fall2024/blob/main/classes/in_class_code/day15_inclass.Rmd) 
+
+
+```{r}
+model.matrix(m1)[1:30,]
+```
+
+### One-way ANOVA   
+
+$$H_0: y_{ij} = \mu + \varepsilon_{ij}$$
+($H_0:$ All means are the same regardless of the predictor variable, indicated in subscript $j$).
+
+$$H_1: y_{ij} = \mu + \beta_j + \varepsilon_{ij}$$
+($H_1:$ The means are different depending on the predictor variable, indicated in subscript $j$).
+
+```{r}
+car::Anova(m1, type = "II")
+car::Anova(m1, type = "III")
+```
+
+::: {.alert .alert-info}
+-   <strong>Self-study questions:</strong> 
+  - If the treatment factor has two levels, what is the difference between a t-test and an ANOVA test?   
+  - Can you know which mean is larger based on the ANOVA results?  
+  
+:::
+
+### Two-way ANOVA  
+
+Used to answer the same types of questions, this analysis is most common in factorial designs.  
+
+
+```{r}
+dd %>% 
+  ggplot(aes(species, crown_g))+
+  geom_boxplot(aes(fill = trt, color = species))+
+  scale_fill_manual(values = c("white", "#F7B05B"))+
+  scale_color_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Species", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment", 
+       color = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+m2 <- lm(crown_g ~ species*trt, data = dd)
+summary(m2)
+```
+
+```{r}
+model.matrix(m2)[1:30,]
+```
+
+```{r}
+car::Anova(m2, type = "II")
+car::Anova(m2, type = "III")
+```
+
+
+## Using a combination of categorical (indicator) variables and continuous variables  
+
+### Review types of explanatory data    
+
+```{r}
+url2 <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part3.csv"
+dd2 <- read.csv(url2) 
+ggarrange(
+ dd2 %>% 
+   filter(doy ==237) %>% 
+    ggplot(aes(species, crown_g))+
+    geom_boxplot(aes(fill = species))+
+    scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+    labs(x = "Species", 
+         y = "Crown biomass (g)", 
+         fill = "Species")+
+    theme_classic()+
+    theme(aspect.ratio = 1), 
+ dd2 %>% 
+   filter(species== "A") %>% 
+   ggplot(aes(doy, crown_g))+
+    geom_point(aes(fill = species), shape = 21, size =3.5)+
+    scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+    labs(x = "Day of the Year", 
+         y = "Crown biomass (g)", 
+         fill = "Species")+
+    theme_classic()+
+    theme(aspect.ratio = 1),
+ ncol =2, 
+ labels = c("Categorical/Indicators", "Continuous"), 
+ label.x = c(0, 0.2)
+)
+```
+
+```{r}
+dd2 %>% 
+  ggplot(aes(doy, crown_g))+
+  geom_point(aes(fill = species), shape = 21, size =3.5)+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+m3 <- lm(crown_g ~ species*doy, data = dd2)
+
+summary(m3)
+
+car::Anova(m3, type = "III")
+```
+
+```{r}
+model.matrix(m3)[1:30,]
+```
+
+
+## Let's put this in context  
+
+- Don't forget our assumptions:  
+  - residuals are iid $\sim N(0, \sigma^2)$  
+  - parameters enter linearly (linear model)  
+  - homoscedasticity (i.e., constant variance)  
+  
+- Whiteboard. Context in data analysis workflow.
+
+## For next class  
+
+- Read Chapter 15.  
+- Resubmit Assignment 2.
+- Following: model diagnostics, model selection. 

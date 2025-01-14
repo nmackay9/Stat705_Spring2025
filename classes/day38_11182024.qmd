@@ -1,0 +1,72 @@
+---
+title: "Day 38 - 11/18/2024"
+format: html
+editor: visual
+---
+
+## Applied data example I (what are outliers anyways?)  
+
+### The clover example  
+
+- Last day (harvest)  
+
+- Crown biomass
+
+```{r warning=FALSE, message=FALSE}
+library(tidyverse)
+url <-  "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/dd_finalproj.csv"
+dd <- read.csv(url) %>% filter(doy == 237) %>% 
+    filter(species %in% c("A", "D", "E")) 
+```
+
+### Outliers definitions  
+
+>With Q1 and Q3 denoting (essentially) the lower and upper quartiles in the sample, observations greater than $Q3 + k(Q3 − Q1)$ or less than $Q1 − k(Q3 − Q1)$ are flagged as outliers. These values are sometimes outliers and sometimes not. With the typical value of 1.5 for $k$, a normal sample of size 100 has more than 50 percent chance of containing one or more of these ‘outliers’!   
+
+*From [International Encyclopedia of the Social & Behavioral Sciences](https://www.sciencedirect.com/referencework/9780080970875/international-encyclopedia-of-the-social-and-behavioral-sciences)*
+
+#### Default boxplot  
+```{r}
+dd %>% 
+  ggplot(aes(paste(species, trt), crown_g))+
+  theme_classic()+
+  labs(x = "Species", 
+       y = expression(Crown~biomass~(grams~plant^{-1})))+
+  geom_boxplot(alpha = .6)
+```
+
+```{r}
+boxplot(crown_g ~species:trt, data = dd,
+        xlab = "Species",
+        ylab = expression(Crown~biomass~(grams~plant^{-1})))
+```
+
+#### Interquartile range  
+
+```{r}
+dd %>% 
+  group_by(trt, species) %>% 
+  transmute(crown_g, 
+            outlier = crown_g > (quantile(crown_g, probs = .75)+ 1.5*IQR(crown_g)) |
+              crown_g < (quantile(crown_g, probs = .25) - 1.5*IQR(crown_g)) ) %>% 
+  filter(outlier == TRUE)
+```
+
+### Data manipulation goes wrong - a famous example  
+
+- [The Challenger disaster](https://en.wikipedia.org/wiki/Space_Shuttle_Challenger_disaster).    
+- [Feynman's visit to NASA](https://feynman.com/science/the-challenger-disaster/): a communication issue behind the disaster. 
+
+
+![](https://bookdown.org/egarpor/PM-UC3M/images/figures/challenger.png){fig-align="center" width="289"}
+
+
+## Let's work on an example  
+
+[R script](in_class_code/day38_inclass.Rmd)
+
+## Announcements  
+
+- Project due Friday  
+
+

@@ -1,0 +1,80 @@
+---
+title: "Day 9 - 09/09/2024"
+format: html
+editor: visual
+---
+
+## Estimation, uncertainty estimation - a summary  
+
+- Why do we need statistics? [[Interesting read](misc_plots/Del_rigor_en_la_ciencia.pdf)]   
+- What is a statistical model?  
+- Research/curious question, statistical model, R program.  
+- Advice: start simple and add complexity gradually.  
+
+Let's take the traditional general linear model,  
+
+$$\mathbf{y} \sim N(\boldsymbol{\mu}, \sigma^2\mathbf{I}),$$
+
+$$\boldsymbol\mu = \mathbf{X}\boldsymbol\beta,$$
+where $\mathbf{y}$ is a vector containing the observed data, $\boldsymbol\mu$ is a vector of the means of those observations, $\sigma^2$ is the variance of the data and $\mathbf{I}$ is the identity matrix, that is a diagonal of 1s and the rest are zeroes.  
+
+This is the same as writing 
+
+$$\mathbf{y} = \mathbf{X}\boldsymbol\beta + \boldsymbol{\varepsilon}, $$
+
+$$\boldsymbol{\varepsilon} \overset{\mathrm{iid}}{\sim} N(0,\sigma^2 \mathbf{I})$$
+
+A few big assumptions we are making:  
+
+- Normal distribution of the data (of the residuals).    
+- independent, identically distributed (iid) residuals  
+- homoscedasticity  
+- linearity  
+
+Recall some of the properties of the estimator $\hat{\boldsymbol{\beta}}$:   
+
+- unbiased  
+- 'best linear unbiased estimator' (BLUE), minimum variance.  
+
+That is the same as running the following `lm` function in R:  
+
+```{r eval = FALSE}
+lm(response ~ 1 + x1 + x2, data = data)
+```
+
+#### Uncertainty  
+
+There is uncertainty associated to all estimates because (i) models are only a simplification of reality, and (ii) we observe a limited amount of data.  
+For example, we have 
+$$\hat{\boldsymbol{\beta}} \sim N(\boldsymbol{\beta}, \frac{\sigma^2}{(n-1)s^2_x}),$$
+ 
+$$y_{new} \sim N(\mu_{new}, \sigma^2),$$
+and  
+
+$$\hat{y}_{new} \sim N(\hat{\mu}_{new}, \hat{\sigma}^2).$$
+
+That is why, when reporting a point estimate (of $\beta$, $y$, or $y_{new}$), there is some unceratinty associated. For example, for any estimate $\hat\theta$, we know that the 95%CI is 
+$$ \hat{\theta} \pm t_{dfe, 1 - \alpha/2} \ s.e.(\hat\theta).$$
+
+- For $\hat\beta$, $s.e.(\hat\beta) = \frac{\hat\sigma}{s_x\sqrt{n-1}}$.
+
+- For $E(y_{new}|x_{new}) = \hat{\beta_0}+\hat{\beta_1}x_{new}$, $s.e.(\hat{\beta_0}+\hat{\beta_1}x_{new}) = \hat{\sigma}\sqrt{\frac{1}{n}+ \frac{(x-\hat\mu_x)^2}{(n-1)s_x^2}}$.
+
+- For $y_{new}|x_{new}$, we use $s.e.(\hat\varepsilon)=\hat\sigma \sqrt{1+\frac{1}{n}+ \frac{(x-\hat\mu_x)^2}{(n-1)s_x^2}}$. 
+
+- Let's analyze these.  
+
+- And recall that derived quantities, like the optimum plant density (see [class 8](https://jlacasa.github.io/stat705_fall2024/classes/day08_09062024)) have their own standard errors that make their own CI.
+  - Delta method  
+  - Bootstrap  
+
+### What is coming next in this course, connection with uncertainty  
+
+- Hypothesis tests  
+- Mean comparison  
+- The connection between 95%CI and an hypothesis test with $\alpha$ = 0.05  
+
+### Announcements 
+
+- Office hours today are 1-2pm.  
+

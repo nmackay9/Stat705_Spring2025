@@ -1,0 +1,38 @@
+---
+title: "Day 17 - 09/27/2024"
+format: html
+editor: visual
+---
+
+## From last class  
+
+- Our assumptions should represent the data generating process as good as possible.  
+- We are working on assessing the degree of violation of our assumptions.  
+- Graphical/descriptive methods // Test methods  
+
+![model checking](misc_plots/model_checking.jpg)
+
+::: {.alert .alert-info}
+**ASSUMPTIONS BEHIND**
+
+$$\mathbf{y} \sim \text{N}(\boldsymbol{\mu}, \sigma^2\mathbf{I}),$$
+
+$$\boldsymbol{\mu} = \mathbf{X}\boldsymbol{\beta}.$$
+  
+- Linearity\
+-   Homoscedasticity (i.e., constant variance)\
+-   Residuals are iid $\sim N(0, \sigma^2)$  
+    - Independent\  
+    - Normally distributed  
+:::
+
+## Live R code. A not-so-obvious example  
+
+[R code](https://github.com/jlacasa/stat705_fall2024/blob/main/classes/in_class_code/day17_inclass.Rmd)
+
+
+## Next week  
+
+- Read chapters 4 and 5.   
+- Assignment guide is up.  
+

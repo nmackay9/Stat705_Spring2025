@@ -1,0 +1,35 @@
+---
+title: "Day 25 - 10/18/2024"
+format: html
+editor: visual
+---
+
+## From last class  
+
+- Review on model design and model selection.  
+  - 1-What is the objective of the study?  
+  - 2-What is the data generating process?  
+  - 3-Think of a set of assumptions that represent (2) and can help answer (1). Build a statistical model.  
+  - 4-Fit the model to the data.  
+  - 5-Check that the assumptions were not that off.   
+- Always from simple to more complex!  
+
+## Let's talk about the semester projects.  
+
+- What is expected.  
+- What is not expected.  
+
+### An example:
+
+- **Background:** We want to investigate how different legume species perform in flooded conditions. We grew 5 different species under greenhouse conditions and divided them into 2 groups: treated and control. The treated were flooded for 39 days. The plant's biomass was recorded at 3 points in time: at the time of application of the treatment, the day the treatment was concluded, and after a recovery of 43 days. The plants would be used as forage at this last point in time, i.e., day 237.  
+- **Objective:** We wish to find out which species yielded more biomass, and evaluate the tolerance to flooded conditions.  
+- Write out the statistical model.  
+- Which parameters are we interested in estimating?  
+
+Let's try it out! [R code](https://github.com/jlacasa/stat705_fall2024/blob/main/homeworks/finalproj_tutorial.Rmd).
+[tutorial html](https://jlacasa.github.io/stat705_fall2024/homeworks/finalproj_tutorial)
+
+## For next class  
+
+- We'll focus on mixed models.  
+- A comment about the survey.  

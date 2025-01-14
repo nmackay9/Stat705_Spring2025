@@ -1,0 +1,65 @@
+---
+title: "In class 14"
+author: "J Lacasa"
+date: "2024-09-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Packages
+```{r}
+library(tidyverse)
+library(car)
+library(emmeans)
+library(multcomp)
+```
+
+Data
+```{r}
+getwd()
+dd <- read.csv("../data/lotus_part3.csv")
+```
+
+```{r}
+
+dd %>% 
+  ggplot(aes(doy, crown_g))+
+  geom_point(aes(fill = species), shape = 21, size =3.5)+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+Let's fit the model
+$$y_{ij} \sim N(\mu_{ij}, \sigma^2),$$
+
+$$\mu_{ij} = \beta_{0j} + \beta_{1j}x_{ij},$$
+where $y_{ij}$ is the observation of crown biomass for the $i$th observation of the $j$th species, $\mu{ij}$ is its mean and $\sigma^2$ its variance. The means is described with $\beta_{0j}$, the intercept of the $j$th species and $\beta_{1j}$, the slope of the $j$th species  
+
+
+```{r}
+m <- lm(crown_g ~ species * doy, data = dd)
+summary(m)
+```
+
+## Model diagnostics
+
+## Model selection  
+
+## Inference  
+```{r}
+car::Anova(m)
+```
+
+```{r}
+m_emmeans <- emmeans(m, ~"species:doy")
+multcomp::cld(m_emmeans, Letter = letters)
+```
+
+## Visualization

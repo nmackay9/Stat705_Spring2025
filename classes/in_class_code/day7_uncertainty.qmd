@@ -1,0 +1,58 @@
+---
+title: "Day 7 live"
+format: html
+editor: visual
+---
+
+Read the data from the 
+```{r}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_hw1.csv"
+data <- read.csv(url)
+m <- lm(stm.length_cm ~ 1 + doy,  data = data)
+confint(m)
+```
+
+Let's estimate the fitted value and 95% (the default) estimation/prediction confidence intervals for a single point, when doy = 200. 
+```{r}
+dd_new <- data.frame(doy =200)
+
+predict(m, newdata = dd_new, type = "response", 
+        interval = "none")
+predict(m, newdata = dd_new, type = "response", 
+        interval = "confidence")
+predict(m, newdata = dd_new, type = "response", 
+        interval = "prediction")
+```
+
+Let's estimate the fitted value and 95% (the default) estimation/prediction confidence intervals for a bunch of points, between doy = 160 and doy = 260. 
+
+```{r}
+dd_new <- data.frame(doy =160:260)
+
+fitted <- predict(m, newdata = dd_new, type = "response", interval = "none")
+plot(dd_new$doy, fitted, ty = 'l')
+```
+
+
+```{r}
+est_uncert <- predict(m, newdata = dd_new, type = "response",  interval = "confidence")
+as.data.frame(est_uncert) %>% 
+  bind_cols(dd_new) %>% 
+  ggplot(aes(doy, fit))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr), fill = 'grey70')+
+  geom_line()
+```
+
+
+```{r}
+pred_uncert <- predict(m, newdata = dd_new, type = "response", 
+        interval = "prediction")
+
+as.data.frame(pred_uncert) %>% 
+  bind_cols(dd_new) %>% 
+  ggplot(aes(doy, fit))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr), fill = 'grey70')+
+  geom_line()
+```
+

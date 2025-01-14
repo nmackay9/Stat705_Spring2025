@@ -1,0 +1,129 @@
+---
+title: "Day 41 - 12/06/2024"
+format: html
+editor: visual
+---
+
+## An applied example based on the questions I got   
+
+### Review linear regression  
+
+- We're describing changes in y with one continuous predictor.  
+- Brainstorm examples.   
+- Interpretation of slope parameter.  
+
+```{r message=FALSE, warning=FALSE}
+library(agridat)
+library(tidyverse)
+
+data(hessling.argentina)
+dd <- hessling.argentina
+m1 <- lm(yield ~ t10, data = dd)
+summary(m1)
+```
+
+### Review multiple linear regression  
+
+- We're describing changes in y with multiple continuous predictors.  
+- Brainstorm examples.   
+- [In class example](in_class_code/day41_inclass.Rmd).
+- Interpretation of slope parameters.  
+- Multiple regression is actually a good alternative to bad choices [[link](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1046/j.1365-2656.2002.00618.x)].
+
+
+### Model diagnostics review  
+
+A simple linear mode:  
+
+$$y_{ij} \sim N(\mu_{ij}, \sigma^2),$$
+
+$$\mu_{ij} = \mu + \tau_i + b_j,$$ 
+
+where:
+
+- $y_{ij}$ is the observed yield of the ith genotype and jth repetition, 
+- $\mu_{ij}$ is the expected value and $\sigma^2$ the variance, 
+- $\mu$ is the overall mean, 
+- $\tau_i$ is the effect of the ith genotype, 
+- $b_j$ is the effect of the jth block.  
+
+- Review assumptions.  
+- Alliance wheat trial example ([Stroup et al., 1994](https://acsess.onlinelibrary.wiley.com/doi/abs/10.2135/cropsci1994.0011183x003400010011x)).  
+
+```{r}
+data(gilmour.serpentine)
+dd <- gilmour.serpentine
+dd <- dd %>% 
+  mutate(rowf=factor(row), colf=factor(10*(col-8)))
+```
+
+```{r}
+polygon <- data.frame(rep = rep(c("R1", "R2", "R3"), each = 4), 
+           col = rep(c(.5, 5.5, .5, 10.5, 10.5, 15.5), each =2), 
+           row = rep(c(.5, 22.5, 22.5, .5), 3))
+dd %>% 
+  ggplot(aes(col, row))+
+  geom_raster(aes(fill = yield))+
+  coord_equal()+
+  geom_polygon(aes(group = rep),
+               data = polygon,
+               fill = NA, color = 'black')+
+  rcartocolor::scale_fill_carto_c(palette = "Earth",
+                                  name = expression(Yield~(g~m^{-2}))) +
+  theme_minimal()+
+  labs(x = "Col", 
+       y = "Row")
+```
+
+```{r}
+m1 <- lm(yield ~ gen + rep, data = dd)
+```
+
+#### Checking for constant variance  
+
+```{r}
+plot(m1$fitted.values, abs(m1$residuals))
+```
+
+#### Checking for normal residuals
+
+```{r}
+car::qqPlot(m1)
+```
+
+#### Checking for independent residuals  
+
+```{r}
+dd$residuals <- m1$residuals
+
+library(gstat)
+library(sp)
+library(latex2exp)
+
+dd_sp <- dd
+coordinates(dd_sp) <-  ~ col + row # x+y
+v <- variogram(residuals ~ 1, data = dd_sp, cloud=F)
+
+plot(v)
+
+v_fit <- fit.variogram(v, vgm("Sph"))
+
+plot(v,v_fit, cutoff = 10, add =TRUE)
+```
+
+
+```{r}
+dd %>% 
+  ggplot(aes(col, row))+
+  geom_raster(aes(fill = residuals))+
+  coord_equal()+
+  geom_polygon(aes(group = rep),
+               data = polygon,
+               fill = NA, color = 'black')+
+  rcartocolor::scale_fill_carto_c(palette = "Fall",
+                                  name = TeX("$\\epsilon_i$ (g $m^{-2}$)")) +
+  theme_minimal()+
+  labs(x = "Col", 
+       y = "Row")
+```
+

@@ -1,0 +1,14 @@
+---
+title: "Day 18 - 09/30/2024"
+format: html
+editor: visual
+---
+
+[link to pdf](day18_09302024_bootstrap_pres.pdf)
+
+![](day18_09302024_bootstrap_pres.pdf){width=100%}
+
+## Announcements
+
+-   [Homework 3](https://jlacasa.github.io/stat705_fall2024/assignments/hw3) due October 10, 11:59 pm.\
+-   [Assignment guide](https://jlacasa.github.io/stat705_fall2024/assignments/hw_guides) is up.

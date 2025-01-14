@@ -1,0 +1,49 @@
+---
+title: "Day 5 - Estimation live example"
+format: html
+editor: visual
+---
+
+Libraries
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+Data
+
+```{r}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_hw1.csv"
+data <- read.csv(url)
+```
+
+EDA
+
+```{r}
+plot(data$doy, data$stm.length_cm)
+```
+
+```{r}
+m_cont <- lm(stm.length_cm ~ 1 + doy,  data = data)
+```
+
+```{r}
+model.matrix(m_cont)
+```
+
+```{r}
+coef(m_cont)
+```
+
+```{r}
+data %>% 
+  ggplot(aes(doy, stm.length_cm))+
+  geom_point()+
+  stat_function(fun = function(x){
+    coef(m_cont)[1] + coef(m_cont)[2]*x
+  })
+```
+
+```{r}
+confint(m_cont)
+```

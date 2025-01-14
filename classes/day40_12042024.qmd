@@ -1,0 +1,43 @@
+---
+title: "Day 38 - 11/18/2024"
+format: html
+editor: visual
+---
+
+## This is it! Final wrap-up of STAT 750   
+
+
+#### What is a statistical model  
+
+- An abstraction, a summary.  
+- Deterministic equation + likelihood function  
+  (mathematical formula of the (linear) predictor + probability distribution)   
+- Steps to design a statistical model:  
+  - Define the distribution the data arise from.  
+  - Define the linear predictor. 
+  - Select a method to estimate the parameters. 
+    - Least Squares
+    - Maximum Likelihood Estimation  
+    - REML  
+    - Bayesian Estimation (check of STAT 786 - Applied Bayesian Modeling and Prediction)
+
+#### Key things to report  
+
+- Expected value.  
+- Uncertainty!!!  
+
+#### Statistics as a catalyzer of scientific progress  
+
+- The connection between scientific questions and statistics.  
+
+
+
+## Miscellaneous  
+
+- Next class: review linear regression, multiple linear regression.  
+- Sources where to learn how to code better without relying on AI:  
+  - [R for Data Science (2e)](https://r4ds.hadley.nz/)  
+  - [Advanced R](https://adv-r.hadley.nz/)  
+  - More advanced: [WTF - What They Forgot to Teach You About R](https://rstats.wtf/)  
+  - Practice hands-on!  
+  - Remember learning is not always pain free (:

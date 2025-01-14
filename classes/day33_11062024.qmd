@@ -1,0 +1,114 @@
+---
+title: "Day 33 - 11/06/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+- Assignment review  
+- [glmnet documentation](https://glmnet.stanford.edu/)
+
+## Generalized linear model (GLM) 
+
+Necessary steps to define the statistical model:  
+
+- Identify the probability distribution of $y$  
+- - Define what your model is focusing on (usually the expected value $E(y)$)  
+- State the linear predictor $\eta$  
+- Identify a link function that connects $E(y)$ to the linear predictor  
+
+### The general linear model as a special case of the GLM   
+
+- Identify the probability distribution of $y$  
+  - $y_i \sim N(\mu_i, \sigma^2)$
+- State the linear predictor $\eta$  
+  - $\eta_i = \eta + \tau_i$  
+- Identify a link function that connects $E(y)$ to the linear predictor  
+  - "identity function": $\eta_i = \mu_i$
+
+### The exponential family  
+
+In general, the GLM can model any distribution from the exponential family:  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggpubr)
+
+n <- 2000
+set.seed(42)
+snorm <- rnorm(n, mean = 1, sd = sqrt(1))
+spois <- rpois(n, lambda = 1)
+sbinom <- rbinom(n, size = 12, prob = .3)
+sbeta <- rbeta(n, shape1 = 2, shape2 = 4)
+st <- rt(n, df = 10, ncp = 1)
+sgamma <- rgamma(n, shape = 10, rate = 2)
+
+data.frame(normal = snorm, 
+           poisson = spois, 
+           binomial = sbinom, 
+           beta = sbeta, 
+           t = st, 
+           gamma = sgamma) %>% 
+  pivot_longer(cols = everything()) %>% 
+  mutate(name = factor(name, 
+                       levels = c("normal", "t", "gamma", "beta",
+                                  "poisson", "binomial"))) %>% 
+  ggplot(aes(value))+
+  geom_histogram()+
+  theme_pubclean()+
+  facet_wrap(~name, scales = "free_x")+
+  theme(aspect.ratio = 1)
+```
+
+
+## Applied examples   
+
+### Modeling counts of insects    
+
+[R script](in_class_code/day33_inclass.Rmd)
+
+```{r message=FALSE, warning=FALSE}
+library(agridat)
+
+data(beall.webworms)
+dd <- beall.webworms
+str(dd)
+
+unique(dd %>% 
+         dplyr::select(trt, spray, lead))
+
+dd %>% 
+  ggplot(aes(y , trt))+
+  geom_jitter(alpha = .25, width = 0.1)+
+  geom_boxplot(aes(color = trt, fill = trt), alpha = .4, outliers = FALSE)+
+  theme_classic()+
+  labs(y = "Treatment",
+       x = "Webworm Counts",
+       fill = "Treatment", 
+       color = "Treatment")+
+  scale_fill_manual(values = c("#FC4C02", "#B47978", "#008E97", "#99D17B"))+
+  scale_color_manual(values = c("#FC4C02", "#B47978", "#008E97", "#99D17B"))+
+  scale_x_continuous(breaks = 0:9)+
+  theme(legend.position = "bottom")
+
+```
+
+```{r message=FALSE, warning=FALSE}
+library(mgcv)
+m1 <- gam(y ~ spray*lead,
+          family = poisson(link = "log"),
+          data = dd)
+
+# summary(m1)
+anova(m1)
+```
+
+```{r}
+
+```
+
+
+
+
+

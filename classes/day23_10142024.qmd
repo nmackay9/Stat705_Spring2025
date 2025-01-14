@@ -1,0 +1,27 @@
+---
+title: "Day 23 - 10/14/2024"
+format: html
+editor: visual
+---
+
+## Quick recap about model selection   
+
+- We want to select simple but complex enough models.  
+- Assumptions should be as realistic as possible.  
+- Usually, predictive ability is desired.  
+  - At what cost? - evaluate model fit adding a penalty for each parameter  
+  - Isn't it unfair to use the data twice? - out-of-sample prediction accuracy
+    - e.g., cross-validation (k-fold/leave-one-out)    
+
+## Applied example  
+
+[R script](https://github.com/jlacasa/stat705_fall2024/blob/main/classes/in_class_code/day23_inclass.Rmd).  
+
+## Reviewing the Homework  
+
+Find the guide [here](https://jlacasa.github.io/stat705_fall2024/assignments/hw_guides).
+
+## For next class  
+
+- Read chapter 9 - Shrinkage Methods  
+- Office hours today are right after class (10:30-11:30 am) \& 3:00-3:20 pm  

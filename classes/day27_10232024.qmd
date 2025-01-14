@@ -1,0 +1,20 @@
+---
+title: "Day 27 - 10/23/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+- Kahoot  
+- Interesting/helpful [read](https://link.springer.com/article/10.1007/s10654-016-0149-3?src_trk=em663d4d5450ba10.57213960169934027).  
+- [New Assignment](https://jlacasa.github.io/stat705_fall2024/assignments/hw4) due 10/31.  
+
+## Mixed models  
+
+- Whiteboard  
+
+## For next class  
+
+- Mixed models.  
+- Schedule a meeting with me if you need to discuss more about your project!  

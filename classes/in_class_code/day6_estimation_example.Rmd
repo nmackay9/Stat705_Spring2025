@@ -1,0 +1,49 @@
+---
+title: "Day 6 in class code"
+author: "J Lacasa"
+date: "2024-08-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_hw1.csv"
+data <- read.csv(url)
+```
+
+```{r}
+data %>% 
+  ggplot(aes(doy, stm.length_cm))+
+  geom_point()
+```
+
+## Model fitting
+```{r}
+m1 <- lm(stm.length_cm ~ 1 + doy, data = data)
+
+summary(m1)
+```
+
+```{r}
+confint(m1)
+```
+
+```{r}
+hist(m1$residuals)
+```
+
+```{r}
+plot(m1)
+```
+
+```{r}
+hist(rnorm(length(m1$residuals), 0, 1))
+```
+

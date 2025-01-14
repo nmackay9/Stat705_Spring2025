@@ -1,0 +1,139 @@
+---
+title: "Day 8 - 09/06/2024"
+format: html
+editor: visual
+---
+
+## From last class
+
+-   Be suspicious of point estimates that are reported alone.  
+
+## Uncertainty  
+
+### Intro - data/model prep  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/corn_example2.csv"
+data <- read.csv(url)
+data %>% 
+  ggplot(aes(plant_density, yield_Mgha))+
+  geom_point()+
+  labs(x = expression(Plant~Density~(plants~m^{-2})), 
+       y = expression(Grain~Yield~(Mg~ha^{-1})))+
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 15), 
+                  ylim = c(0, 16), 
+                  expand = F)+
+  theme(aspect.ratio = 1)
+```
+
+What would be a good statistical model for these data?  
+
+The yield from the $i$th observation, $y_i$, can be described as 
+$$y_i \sim N(\mu_i , \sigma^2),$$
+
+$$\mu_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 ,$$
+for $i =1, 2, ..., n$, where $n$ is the total number of observations, $\mu_i$ is the mean of the $i$th observation, $\beta_0$ is the intercept (i.e., the yield with zero plants), $\beta_1$ and $\beta_2$ determine the shape of the quadratic curve, $x_i$ is the plant density of the $i$th observation, and $\sigma^2$ is the variance of the data.  
+
+```{r}
+m <- lm(yield_Mgha ~ plant_density + I(plant_density^2), data = data)
+summary(m)
+```
+
+
+### Estimation uncertainty  
+
+
+```{r}
+data_new <- data.frame(plant_density = 10)
+```
+
+Let's look at 
+$$E(y_i) = E(\beta_0 + \beta_1 x_i + \beta_2 x_i^2).$$
+```{r}
+predict(m, data_new, type = "response")
+```
+
+
+Let's look at the 95% CI for 
+$$E(y_i) = E(\beta_0 + \beta_1 x_i + \beta_2 x_i^2).$$
+
+```{r}
+predict(m, data_new, interval = "confidence")
+```
+
+### Prediction uncertainty  
+
+Let's look at the 95% CI for 
+$$y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i,$$
+where $\varepsilon_i = y_i- \mu_i$.
+
+
+```{r}
+predict(m, data_new, interval = "prediction")
+```
+
+### Uncertainty of derived quantities  
+
+- What is a derived quantity?  
+- Invariance property of Maximum likelihood estimators.  
+- What options are there out there to calculate the uncertainty of a derived quantity?  
+- Check out [this paper](https://link.springer.com/article/10.1186/s13007-024-01261-9).  
+
+#### The 'optimum planting rate'  
+
+The first derivative of $\beta_0 + \beta_1 x_i + \beta_2 x_i^2$ is $\beta_1 + 2x_i \beta_2$. If we set that to zero, 
+
+$$\beta_1 + 2x_i \beta_2 = 0, $$
+
+and 
+
+$$OPR = x_i  = - \frac{\beta_1}{2 \beta_2}.$$
+
+Using the invariance property of MLE, we can obtain the MLE for this derived quantity.  
+
+```{r}
+coef(m)
+(opd_hat <- -coef(m)[2]/(2*coef(m)[3]))
+```
+
+What would be a reasonable confidence interval for this derived quantity?   
+
+#### Can we apply the invariance propert and use the 95% CI from the $\beta$s to estimate the 95CI for the derived quantity?  
+
+
+```{r}
+confint(m)
+```
+
+```{r}
+covariance <- vcov(m)
+covariance
+```
+
+[Remember the simulation?](https://jlacasa.github.io/stat705_fall2024/classes/in_class_code/day8_simulation_example) [[R code](https://github.com/jlacasa/stat705_fall2024/tree/main/classes/in_class_code/day8_simulation_example.qmd)]
+
+
+#### The delta method  
+
+
+```{r}
+opd_se_hat <- msm::deltamethod(g = ~ -x2/(2*x3), mean = coef(m), cov = covariance)
+opd_hat - 1.96*opd_se_hat ## 1.96 is typically used for approximate confidence intervals
+opd_hat + 1.96*opd_se_hat
+```
+
+## Summary    
+
+- Why are uncertainty estimates important?  
+- What are uncertainty estimates telling us?  
+- Which variables have uncertainty? Which ones don't?  
+- Where does uncertainty come from?  
+
+## For next week  
+
+- [Assignment 2](https://jlacasa.github.io/stat705_fall2024/assignments/hw2) is up.  
+- Semester project proposals are due next Friday.
+- [An example proposal](https://github.com/jlacasa/stat705_fall2024/blob/main/homeworks/finalproj.pdf). 
+

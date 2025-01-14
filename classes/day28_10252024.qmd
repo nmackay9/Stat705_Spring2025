@@ -1,0 +1,94 @@
+---
+title: "Day 28 - 10/25/2024"
+format: html
+editor: visual
+---
+
+## Questions before we start?  
+
+## Mixed models  
+
+<<<<<<< HEAD
+- Why are we learning about mixed models?  
+=======
+- Why are we learning about mixed models?
+
+- Case study: Regression for several individuals   
+- Assumptions of the General Linear Model  
+- Assumptions of the General Linear Mixed Model  
+- Increasing assumptions:  
+- $y_i \sim N(\mu_i, \sigma^2)$, $\mu_i = \beta_0 + \beta_1 x_i$
+- $y_{ij} \sim N(\mu_{ij}, \sigma^2)$, $\mu_{ij} = \beta_{0i} + \beta_1 x_{ij}$  
+- $y_{ij}|b_{0i} \sim N(\mu_{ij}, \sigma^2)$, $\mu_{ij} = \beta_{0} + b_{0i} + \beta_1 x_{ij}$, $b_{0i} \sim N(0, \sigma^2_0)$  
+- $y_{ij}|b_{0i},b_{1i} \sim N(\mu_{ij}, \sigma^2)$, $\mu_{ij} = \beta_{0} + b_{0i} + \beta_1 x_{ij}$, $\begin{bmatrix}b_{0i} \\ b_{1i} \end{bmatrix} \sim N \left( \begin{bmatrix}0 \\ 0 \end{bmatrix}, \begin{bmatrix}\sigma^2_{0} & \sigma^2_{01} \\ \sigma^2_{01} & \sigma^2_{1} \end{bmatrix} \right)$.
+
+- What implications do random effects have over modeling as fixed effects?  
+- What minimum information would we need?  
+
+## Applied example  
+
+Data can be found [here](https://www.kaggle.com/datasets/devansodariya/student-performance-data).
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+>>>>>>> 5f4c6c651a1bc05de452f16d2d02e24368fc92ec
+
+```{r}
+library(agridat)
+data(davidian.soybean)
+dat <- davidian.soybean
+dat$year <- factor(dat$year)
+```
+
+<<<<<<< HEAD
+## Resources  
+=======
+
+```{r}
+dd <- read.csv("data/student_data.csv") %>% 
+  rownames_to_column("student_ID") %>% 
+  pivot_longer(cols = c(G1, G2), values_to = "prev_grade", names_to = "term")
+```
+
+```{r}
+dd %>% 
+  ggplot(aes(prev_grade, G3))+
+  geom_point()+
+  facet_wrap(~school)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(nlme)
+```
+
+
+```{r}
+m1 <- lm(G3 ~ school + prev_grade : school, data = dd)
+m2 <- lm(G3 ~ school+ prev_grade : school + student_ID , data = dd)
+m3 <- lm(G3 ~ school + prev_grade : school : student_ID , data = dd)
+coef(m3)[1:10]
+m4 <- lme(G3 ~ prev_grade : school, random = ~ 1|student_ID, data = dd)
+m4
+m5 <- lme(G3 ~ school + prev_grade : school, random = ~ 0+prev_grade|student_ID, data = dd)
+m5
+```
+
+```{r}
+dd$p1 <- predict(m1, dd)
+dd$p2 <- predict(m2, dd)
+dd$p3 <- predict(m3, dd)
+dd$p4 <- predict(m4, dd)
+dd$p5 <- predict(m5, dd)
+
+dd %>%
+  ggplot(aes())+
+  facet_wrap(~school)+
+  geom_point(aes(x =prev_grade, y=G3))+
+  geom_point(aes(x=prev_grade, y=p2, group = school), color = 'lightblue')+
+  geom_point(aes(x=prev_grade, y=p3, group = school), color = 'orange')+
+  geom_point(aes(x=prev_grade, y=p4, group = school), color = 'gold')+
+  geom_point(aes(x=prev_grade, y=p5, group = school), color = 'lightgreen')+
+  geom_point(aes(x=prev_grade, y=p1), color = 'tomato')
+```
+>>>>>>> 5f4c6c651a1bc05de452f16d2d02e24368fc92ec
+

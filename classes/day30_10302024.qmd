@@ -1,0 +1,137 @@
+---
+title: "Day 30 - 10/30/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+- Rendering quarto htmls  
+```{r eval = FALSE}
+title: "title_to_assignment"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+```
+- Assignment is due tomorrow 11:59 pm  
+- Projects are due November 22 (3.5 weeks)  
+  - Send to one of your classmates for peer review
+  - Peer review feedback due December 2nd.  
+  - Presentations (15 min) the week of finals.  
+
+## Mixed models  
+
+- Review assumptions on the whiteboard.  
+- Differences between fixed versus random effects
+  - Methods of estimation. LSE, shrinkage.   
+  - What process is being studied? (interest at the population-level versus at the individual-level)  
+  - How many levels does the factor have, vs. how many did we record?  
+  - Different types of inference we obtain.  
+- Criteria for fixed versus random effects.  
+
+### Applied examples  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+#### Random intercept and slope  
+
+```{r message=FALSE, warning=FALSE}
+dd <- read.csv("data/student_data.csv") %>% 
+  rownames_to_column("student_ID") %>% 
+  pivot_longer(cols = c(G1, G2), values_to = "prev_grade", names_to = "term")
+```
+
+```{r}
+dd %>% 
+  ggplot(aes(prev_grade, G3))+
+  geom_point()+
+  facet_wrap(~school)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(nlme)
+```
+
+```{r}
+m1 <- lm(G3 ~ school + prev_grade : school, data = dd)
+m2 <- lm(G3 ~ school+ prev_grade : school + student_ID , data = dd)
+m3 <- lm(G3 ~ school + prev_grade : school : student_ID , data = dd)
+m4 <- lme(G3 ~ prev_grade : school, random = ~ 1|student_ID, data = dd)
+m5 <- lme(G3 ~ school + prev_grade : school, random = ~ 0+prev_grade|student_ID, data = dd)
+```
+
+```{r}
+dd$p1 <- predict(m1, dd)
+dd$p2 <- predict(m2, dd)
+dd$p3 <- predict(m3, dd)
+dd$p4 <- predict(m4, dd)
+dd$p5 <- predict(m5, dd)
+
+dd %>%
+  ggplot(aes())+
+  facet_wrap(~school)+
+  geom_point(aes(x =prev_grade, y=G3))+
+  geom_point(aes(x=prev_grade, y=p2, group = school), color = 'lightblue')+
+  geom_point(aes(x=prev_grade, y=p3, group = school), color = 'orange')+
+  geom_point(aes(x=prev_grade, y=p4, group = school), color = 'gold')+
+  geom_point(aes(x=prev_grade, y=p5, group = school), color = 'lightgreen')+
+  geom_point(aes(x=prev_grade, y=p1), color = 'tomato')
+```
+
+#### Designed experiments  
+
+```{r message=FALSE, warning=FALSE}
+library(agridat)
+```
+
+```{r}
+data(gilmour.serpentine)
+dd <- gilmour.serpentine
+dd <- dd %>% 
+  mutate(rowf=factor(row), colf=factor(10*(col-8)))
+str(dd)
+```
+
+```{r}
+polygon <- data.frame(rep = rep(c("R1", "R2", "R3"), each = 4), 
+           col = rep(c(.5, 5.5, .5, 10.5, 10.5, 15.5), each =2), 
+           row = rep(c(.5, 22.5, 22.5, .5), 3))
+dd %>% 
+  ggplot(aes(col, row))+
+  geom_raster(aes(fill = yield))+
+  coord_equal()+
+  geom_polygon(aes(group = rep),
+               data = polygon,
+               fill = NA, color = 'black')+
+  rcartocolor::scale_fill_carto_c(palette = "Earth",
+                                  name = expression(Yield~(g~m^{-2}))) +
+  theme_minimal()+
+  labs(x = "Col", 
+       y = "Row")
+```
+
+```{r message=FALSE, warning=FALSE}
+library(nlme)
+
+m_fixed <- lm(yield ~ 0 + gen + rep, data = dd)
+m_mixed <- lme(yield ~ 0 + gen,
+               random = ~ 1 | rep,
+               data = dd)
+m_mixed
+```
+
+#### Hierarchical models  
+
+- Further interpretations of (nested) random effects.  
+
+## Coming next  
+
+- Assignment is due tomorrow 11:59 pm  
+- Projects are due November 22 (3.5 weeks)  
+  - Send to one of your classmates for peer review
+  - Peer review feedback due December 2nd.  
+  - Presentations (15 min) the week of finals.  
+

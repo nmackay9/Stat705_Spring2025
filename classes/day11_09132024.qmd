@@ -1,0 +1,153 @@
+---
+title: "Day 11 - 09/13/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+- Assignment 2 due today  
+- Project proposal due today  
+
+## T-tests  
+
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- 
+"https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part1.csv"
+data <- read.csv(url)
+data %>% 
+  ggplot(aes(species, agb_g))+
+  geom_boxplot()+
+  geom_jitter(alpha = .5)+
+  labs(x = "Species", 
+       y = "Aboveground biomass (g)")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+
+The aboveground biomass from the $i$th observation, $y_i$, can be described as 
+$$y_i \sim N(\mu_i , \sigma^2),$$
+
+$$\mu_i = \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i},$$
+$$x_{1 i} \left \{
+  \begin{aligned}
+    & 1 && \text{if species A} \\
+    & 0 && \text{else}
+  \end{aligned} \right.,$$
+$$x_{2 i} \left \{
+  \begin{aligned}
+    & 1 && \text{if species C} \\
+    & 0 && \text{else}
+  \end{aligned} \right.,$$
+$$x_{3 i} \left \{
+  \begin{aligned}
+    & 1 && \text{if species D} \\
+    & 0 && \text{else}
+  \end{aligned} \right.,$$
+
+for $i =1, 2, ..., n$, where $n$ is the total number of observations, $\mu_i$ is the mean of the $i$th observation, $x_{1i}$, $x_{2i}$, and $x_{3i}$ are indicator variables that identify the species as A, C, or D, and thus $\beta_1$, $\beta_2$, and $\beta_3$ are the means of genotypes A, C, and D, respectively, and $\sigma^2$ is the variance of the data.  
+
+```{r}
+m <- lm(agb_g ~ 0 + species , data = data)
+```
+
+Define a bunch of objects needed for computations below:
+```{r}
+beta_hat <- coef(m)
+dfe <- m$df.residual
+se <- summary(m)[["coefficients"]][,2]
+```
+
+```{r}
+t_A <- (beta_hat[1] - 0)/se[1]
+t_C <- (beta_hat[2] - 0)/se[2]
+t_D <- (beta_hat[3] - 0)/se[3]
+dt(t_A, dfe)
+dt(t_C, dfe)
+dt(t_D, dfe)
+```
+
+### More on t tests   
+
+Recall that the t statistic $T = \frac{\hat\theta}{s.e.(\hat\theta)}$ is used to compute the p value in hypothesis tests. We tested $\beta_1 = 0$ before, but what about $\beta_1 = \beta_2$? In other words, we want to test if the difference between $\beta_1$ and $\beta_2$ is different to zero.  
+In this case, $s.e.(\hat\beta_1 - \hat\beta_2) = \sqrt{s.e.(\hat\beta_1)^2+ s.e.(\hat\beta_2)^2 -2\text{cov}(\hat\beta_1, \hat\beta_2)}$.
+
+```{r}
+c_1 <- (beta_hat[1]-beta_hat[2])/sqrt(se[1]^2 + se[2]^2)
+dt(c_1, dfe)
+c_2 <- (beta_hat[1]-beta_hat[3])/sqrt(se[1]^2 + se[3]^2)
+dt(c_2, dfe)
+c_3 <- (beta_hat[2]-beta_hat[3])/sqrt(se[2]^2 + se[3]^2)
+dt(c_3, dfe)
+```
+
+### An interpretation of 95% CI using t-tests   
+
+Recall the 95% CI of $\hat\beta_1$: $\hat{\beta} \pm t_{dfe, 1-\alpha/2}s.e. (\hat{\beta})$. 
+
+```{r}
+confint(m)
+```
+
+```{r}
+dt((beta_hat[1] - 2.67)/( se[1]/sqrt(1)), dfe)
+dt((beta_hat[1] - 2.68)/( se[1]/sqrt(1)), dfe)
+dt((beta_hat[1] - 2.7)/( se[1]/sqrt(1)), dfe)
+```
+
+```{r}
+comp <- seq(2, 3, by = .01)
+p.save <- numeric(length(comp))
+
+for (i in 1:length(comp)) {
+  p.save[i] <- dt((beta_hat[1] - comp[i])/( se[1]/sqrt(1)), dfe)
+}
+
+data.frame(comp, p.save) %>% 
+  ggplot(aes(comp, p.save))+
+  geom_line()+
+  labs(y = "p value", 
+       x = "comparing the mean with ...")+
+  geom_hline(yintercept = .05, linetype =2, color = 'red')+
+  geom_vline(xintercept = confint(m)[1], linetype= 2)+
+  theme_bw()
+```
+
+```{r}
+summary(m)
+summary(lm(lm(agb_g ~ species , data = data)))
+```
+
+
+### Summary  
+
+Now we know where (almost) everything in the `summary` output comes from!   
+
+```{r eval=FALSE}
+summary(m)
+```
+
+![](misc_plots/summary_comments.png)
+
+
+
+
+
+## But why do we care if something is significant?  
+
+- The value in having categorized ("significant"/"non-significant" results)  
+- What would you say for an effect with p = 0.049 and one with 0.051? Are both significant?   
+- What is the difference between 'significant' and 'non-significant' results? See [this paper](https://stat.columbia.edu/~gelman/research/published/signif4.pdf).  
+- A few things to have in mind when evaluating effects:   
+  - is this difference meaningful?  
+  - what is the noise in these estimations?  
+- Why are we learning about p-values then?  
+  [ASA statement on p-values](https://www.tandfonline.com/doi/full/10.1080/00031305.2016.1154108#d1e167).  
+
+
+## For next class  
+
+- Kahoot on Monday  

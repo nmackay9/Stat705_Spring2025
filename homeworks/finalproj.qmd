@@ -1,0 +1,37 @@
+---
+title: "Legume tolerance to waterlogging"
+subtitle: "Project Proposal"
+author: Name LastName
+format: pdf
+editor: visual
+---
+
+## Introduction  
+
+Legume species are an important component of pasture systems.
+Legumes can establish symbiotic relationships with nitrogen-fixating bacteria and thus represent a sustainable source of Nitrogen for cattle nutrition. 
+Legume species, however, often present growth requirements that may restrict their growth under stressful environments. 
+For example, waterlogging (i.e., periods of flooding that result in anaerobic soil conditions) is a common challenge in many cattle operations.
+Waterlogging may hinder plant growth and ultimately cattle nutrition. 
+However, there is previous evidence about genotypic difference in the tolerance to waterlogging (Malik et al., 2015).
+The objective of this study was to determine the effect of waterlogging on plant growth among three legume species and to compare them.  
+
+## Dataset and Proposed Methods
+
+The data available for this project corresponds to an experiment studying waterlogging tolerance in legumes. The experiment was performed using pots in a greenhouse in a completely randomized design with 12 replications with a 2-way factorial treatment structure. The treatment factors were legume species (with three levels: species A, B, and C) and waterlogging treatment (with two levels: control and flooded for 10 days). 
+The experimental unit was each pot, that was planted with a seed of the corresponding plant species. The plants were grown for 154 days before applying the 10 day long waterlogging treatment. Dry biomass was measured the day when the pots were put in waterlogging conditions, the day it was finished, and 30 days after recovery from waterlogging. 
+
+I propose fitting a linear model that studies plant growth (in grams) as a result of the waterlogging treatment, as 
+$$\mu_{ijk} = \mu + \tau_i + \rho_j + (\tau\rho)_{ij} + \varepsilon_{ijk},$$
+where $\mu$ is the overall mean, $\tau_i$ ($i$ = 1, 2) is the treatment effect, $\rho_j$ ($j$ = 1, 2, 3) is the species effect, $(\tau\rho)_{ij}$ is the treatment by species interaction, and $\varepsilon_{ijk}$ is iid $\sim N(0, \sigma^2)$. I will thus study and compare the different $\tau_i$, $\rho_j$, and $(\tau\rho)_{ij}$.  
+
+## Expected Results
+
+I expect to obtain results indicating that some species are more tolerant to flooding than others (i.e., their controls and treated plants grow more alike). 
+
+## Potential Journal or website for publication  
+A potential journal to publish this work is [Crop, Forage \& Turfgrass Management](https://acsess.onlinelibrary.wiley.com/journal/23743832).
+
+
+## References 
+Al Imran Malik, Tadhamin Iskander Ailewe, William Erskine, Tolerance of three grain legume species to transient waterlogging, AoB PLANTS, Volume 7, 2015, [https://doi.org/10.1093/aobpla/plv040](https://doi.org/10.1093/aobpla/plv040).

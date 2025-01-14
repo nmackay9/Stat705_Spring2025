@@ -1,0 +1,160 @@
+---
+title: "Day 4 - 08/26/2024"
+format: html
+editor: visual
+---
+
+## From last class
+
+- I emailed those who needed partner for their semester project.
+- Quiz: Go to [kahoot.it](https://kahoot.it/)
+
+## Linear models  
+
+A model is a **linear model** when the **parameters** enter linearly. 
+
+- a) $\mu_i = \beta_0 + x_i \beta_1 + x^2_i \beta_2$
+
+- b) $\mu_i = \beta_0 + x_{1i} \beta_1 + x_{2i}^{\beta_2}$
+
+- c) $\mu_i = \exp(x_{1i}\beta_1 + x_{2i}\beta_2)$
+
+- d) The famous linear-plus-plateau model:
+$$\mu_i = \left \{
+  \begin{aligned}
+    & \beta_0 + x_i \beta_1 && \text{if } x_i \leq x_{crit}\\
+    & \beta_0 + x_{crit} \beta_1 && \text{if } x_i > x_{crit}
+  \end{aligned} \right.$$
+
+## Estimation  
+
+- Continuous versus discrete independent variables.
+  -   How do we interpret them?
+
+**Recall the clover example**:  
+
+- 3 clover species planted in pots.  
+- 24 plants per species.  
+- After 2 months, we harvest and weigh their biomass.   
+- We want to **estimate** how much biomass each genotype produces, eventually know how much and which one produces more.   
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+dd_lotus <- read.csv("data/lotus_part1.csv") %>% 
+  transmute(species = factor(species), agb_g) 
+summary(dd_lotus)
+m1 <- lm(agb_g ~ 0 + species, data = dd_lotus)
+```
+
+By programming `m1 <- lm(agb_g ~ 0 + species, data = dd_lotus)`, we are fitting
+
+$$\mathbf{y} \sim \text{N}(\boldsymbol{\mu}, \sigma^2\mathbf{I}),$$
+$$\boldsymbol{\mu}=\mathbf{X}\boldsymbol{\beta}.$$
+
+**What is another way of writing the model shown here?**  
+
+#### Point estimates in $\boldsymbol{\beta}$  
+
+Let's calculate $\hat{\boldsymbol{\beta}}_{LSE} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}$
+
+```{r}
+X <- model.matrix(m1)
+y <- dd_lotus$agb_g
+(beta_hat <- solve(t(X)%*%X) %*% t(X)%*%y)
+```
+
+```{r}
+coefficients(m1)
+```
+
+#### Residuals  
+
+```{r}
+head(residuals <- y - X%*%beta_hat)
+quantile(residuals)
+```
+
+```{r}
+head(residuals(m1))
+quantile(residuals(m1))
+```
+
+```{r}
+hist(residuals)
+```
+
+```{r}
+hist(residuals(m1))
+```
+
+
+This will help us for model diagnostics (coming soon!)
+
+#### Variance $\sigma^2$  
+
+- Perhaps one of the most important parameters we will estimate.  
+- Prediction accuracy. 
+- Prediction intervals, estimation intervals. 
+- Degrees of freedom. From $n-1$ to $n-p$.
+
+Let's calculate $\hat{\sigma}^2 = \frac{\boldsymbol{\hat{\varepsilon}^T\hat{\varepsilon}}}{n-p} = \frac{RSS}{n-p}$
+
+```{r}
+RSS <- sum(residuals^2)
+n <- nrow(dd_lotus)
+p <- length(beta_hat)
+(sigma2_hat <- RSS/(n-p)) 
+(sigma_hat <- sqrt(sigma2_hat))
+```
+
+```{r}
+summary(m1)$sigma
+```
+
+#### Confidence intervals   
+
+Confidence intervals are a measure of uncertainty. They are related to other measures of uncertainty, like $\sigma^2$. We know that 
+$$CI = \hat{\beta} \pm t_{\alpha/2, dfe} \ s.e.,$$
+where $t_{\alpha/2, dfe}$ is the t-score that corresponds to the confidence level (i.e., $\alpha$) with the degrees of freedom of the error $\text{rdf}$, and $s.e.$ is the standard error. 
+
+First, let's calculate the standard error:  
+
+```{r}
+unscaled_covariance <- solve(t(X)%*%X)
+```
+
+```{r}
+(se <- sqrt(diag(unscaled_covariance))*sigma_hat)
+```
+
+```{r}
+alpha <- 0.05
+dfe <- n-p
+(t_score <- qt(p=alpha/2, df = dfe, lower.tail=F))
+```
+
+```{r}
+se*t_score
+```
+
+```{r}
+data.frame(lower = beta_hat - se*t_score, 
+           upper = beta_hat + se*t_score)
+```
+
+```{r}
+confint(m1)
+```
+
+
+#### In `summary`:  
+
+```{r}
+summary(m1)
+```
+
+
+## For next class 
+- No reading!  
+- Finish the assignment. 
+- Schedule a meeting for the semester project. 

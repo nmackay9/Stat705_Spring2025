@@ -1,0 +1,25 @@
+---
+title: "Day 26 - 10/21/2024"
+format: html
+editor: visual
+---
+
+## Let's finish the example semester project  
+
+Check out the [R code](https://github.com/jlacasa/stat705_fall2024/blob/main/homeworks/finalproj_tutorial.Rmd) or [tutorial html](https://jlacasa.github.io/stat705_fall2024/homeworks/finalproj_tutorial).
+
+- **What is expected**  
+  - Provide understandable context.  
+  - The objective is connected to the statistical model. 
+  - The statistical model is appropriate and matches the code.  
+  - The results are well interpreted.  
+  
+- **What is not expected**  
+  - Super-fancy statistical models  
+  - Statistical models you don't understand (or don't understand the intuition behind)  
+  
+## Miscellaneous   
+- Kahoot  
+- Interesting/helpful [read](https://link.springer.com/article/10.1007/s10654-016-0149-3?src_trk=em663d4d5450ba10.57213960169934027).  
+- Wednesday: mixed models!
+

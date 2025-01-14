@@ -1,0 +1,88 @@
+---
+title: "Day 15 - In Class"
+author: "J Lacasa"
+date: "2024-09-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(car)
+```
+
+## Data
+```{r message=FALSE, warning=FALSE}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part4.csv"
+dd <- read.csv(url)
+dd_subset <- dd %>% 
+  filter(trt == "ctrl")
+```
+
+## One-way ANOVA  
+```{r message=FALSE, warning=FALSE}
+dd_subset %>% 
+  ggplot(aes(species, crown_g))+
+  geom_boxplot(aes(fill = species))+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Species", 
+       y = "Crown biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+m1 <- lm(crown_g ~ 1 + species, data = dd_subset)
+model.matrix(m1)
+```
+
+```{r}
+hat_beta <- data.frame(species = c("A", "C", "D"))
+predict(m1, newdata = hat_beta, interval = "confidence")
+```
+
+```{r}
+summary(m1)
+```
+
+```{r}
+Anova(m1)
+```
+
+## Two-way ANOVA  
+```{r}
+dd %>% 
+  ggplot(aes(species, crown_g))+
+  geom_boxplot(aes(fill = trt, color = species))+
+  scale_fill_manual(values = c("white", "#F7B05B"))+
+  scale_color_manual(values = c("#DB504A", "#43AA8B", "#FAD4C0"))+
+  labs(x = "Species", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment", 
+       color = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+lm(crown_g ~ species + trt + species:trt, data = dd)
+m2 <- lm(crown_g ~ species * trt, data = dd)
+```
+
+```{r}
+hat_beta <- expand.grid(species = c("A", "C", "D"), 
+                        trt = c("ctrl", "flood"))
+hat_beta <- hat_beta %>% bind_cols(predict(m2, newdata = hat_beta, interval = "confidence"))
+  
+hat_beta
+```
+
+```{r}
+Anova(m2, type = 3)
+```
+

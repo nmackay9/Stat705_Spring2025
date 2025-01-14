@@ -1,0 +1,21 @@
+---
+title: "In-class example"
+author: "J Lacasa"
+date: "12/6/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+library(agridat)
+library(tidyverse)
+
+data(hessling.argentina)
+dd <- hessling.argentina
+m1 <- lm(yield ~ t10, data = dd)
+summary(m1)
+```

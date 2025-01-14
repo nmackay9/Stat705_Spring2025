@@ -1,0 +1,45 @@
+---
+title: "In class R script - Day 33"
+author: "Emmanuela van Versendaal"
+date: "11/6/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(agridat)
+
+data(beall.webworms)
+dd <- beall.webworms
+str(dd)
+
+dd %>% 
+  ggplot(aes(y , trt))+
+  geom_jitter(alpha = .25, width = 0.1)+
+  geom_boxplot(aes(color = trt, fill = trt), alpha = .4, outliers = FALSE)+
+  theme_classic()+
+  labs(y = "Treatment",
+       x = "Webworm Counts",
+       fill = "Treatment", 
+       color = "Treatment")+
+  scale_fill_manual(values = c("#FC4C02", "#B47978", "#008E97", "#99D17B"))+
+  scale_color_manual(values = c("#FC4C02", "#B47978", "#008E97", "#99D17B"))+
+  scale_x_continuous(breaks = 0:9)+
+  theme(legend.position = "bottom")
+
+```
+
+```{r}
+library(mgcv)
+
+m1 <- gam(y ~ 1 + spray * lead + block,
+          family = poisson(link = "log"),
+          data = dd)
+summary(m1)
+anova(m1)
+```
+

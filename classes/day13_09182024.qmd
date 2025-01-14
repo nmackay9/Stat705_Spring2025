@@ -1,0 +1,46 @@
+---
+title: "Day 13 - 09/18/2024"
+format: html
+editor: visual
+---
+
+## Interactions, effects \& other interpretations  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part2.csv"
+dd <- read.csv(url)
+
+dd %>% 
+  filter(species %in% c("A")) %>% 
+  ggplot(aes(doy, crown_g))+
+  geom_point(aes(fill = trt), shape = 21, size =3.5)+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+
+## Notation  
+
+```{r}
+m <- lm(crown_g ~ trt + doy, data = dd)
+summary(m)
+```
+
+```{r}
+m <- lm(crown_g ~ trt * doy, data = dd)
+summary(m)
+```
+
+## Notation for designed experiments  
+
+```{r}
+m <- lm(crown_g ~ trt * factor(doy), data = dd)
+summary(m)
+```
+
+

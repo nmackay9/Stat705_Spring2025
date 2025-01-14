@@ -1,0 +1,217 @@
+---
+title: "Day 21 - 10/07/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+- [Mid-semester feedback survey](https://forms.gle/5W3AWhzrEtoysn3P6).  
+- [New paper about R^2^](https://www.tandfonline.com/doi/full/10.1080/00031305.2023.2216252).  
+
+## Model selection  
+
+- Recall the conceptual pipeline we use to solve our problems using statistics.  
+  1. Idea/Question/Objective  
+  2. Gathering data  
+  3. Building a statistical model (i.e., assumptions about the data generating process)  
+  4. Fitting the model to data  
+  5. Model diagnostics    
+  6. Model selection  
+  7. Inference  
+  8. Communicating results  
+  
+- Sometimes, there exists a group of models that could possibly answer our question in **(1)** and make relatively reasonable assumptions (i.e., they pass the test in **(2)**). So, we have to select between this group of models which one is the best.  
+- How many variables should we include?  
+  - Bias-variance trade off  
+
+- We have to define what "good" means!
+  - Penalized fit (i.e., penalty for including too many parameters)  
+    - Information Criteria (e.g., AIC, BIC)   
+    - R^2^~adj~  
+  - Out-of-sample prediction accuracy  
+    - Cross-validation  
+    - RMSEP (prediction root mean squared error)  
+  - [A paper on how to evaluate predictions versus observed values](https://www.sciencedirect.com/science/article/pii/S0308521X21001475).
+
+### Applications  
+
+Using the data from [Ransom et al. (2021)](https://doi.org/10.1002/agj2.20812), we wish to create a function that describes the relationship between Nitrogen supply and corn yield. 
+Firstly, we will focus on a single site and year (Ames, IA, 2014).  
+
+#### Load the data  
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+
+# find data at https://doi.org/10.1002/agj2.20812
+dd_yield <- readxl::read_xlsx("data/8.Yield_Plant_Measurements.xlsx", sheet = 2) %>%
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames") %>% 
+  mutate(across(VT_TissN:R4N, ~ as.numeric(.)))
+dd_soil <- readxl::read_xlsx("data/1.Site_Characterization.xlsx", sheet = 2) %>% 
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames", 
+         Horizon == "Ap") %>% 
+  mutate(Block = as.numeric(Block), 
+         across(Clay:WC, ~as.numeric(.)))
+dd_N <- readxl::read_xlsx("data/4.SoilN.xlsx", sheet = 2) %>% 
+  filter(Year == 2014, 
+         State == "IA", 
+         Site == "Ames", 
+         Plot_ID %in% dd_yield$Plot_ID, 
+         Sam_Time == "Post") %>% 
+  mutate(across(c(Plot_ID, N_Trt, Plant_N, Side_N, Plant_N_SI, Side_N_SI), ~as.numeric(.)))
+
+dd_complete <- dd_yield %>% 
+  left_join(dd_soil) %>% 
+  left_join(dd_N)
+
+dd_complete <- dd_complete %>% 
+  mutate(gyield_14 = GYdry/.94, 
+         N_total = Plant_N_SI + Side_N_SI)
+```
+
+```{r}
+dd_complete %>% 
+  ggplot(aes(N_total, gyield_14))+
+  geom_point()+
+  theme_classic()+
+  labs(x = expression(Total~N~Applied~(kg~ha^{-1})),
+       y = expression(Grain~Yield~(kg~ha^{-1})))
+```
+
+#### Fit the to some models  
+
+```{r}
+m0 <- lm(gyield_14 ~ N_total, data = dd_complete)
+m1 <- lm(gyield_14 ~ N_total + I(N_total^2), data = dd_complete)
+m2 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block , data = dd_complete)
+m3 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM, data = dd_complete)
+m4 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay, data = dd_complete)   
+m5 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay + Sand, data = dd_complete)
+m6 <- lm(gyield_14 ~ N_total + I(N_total^2) + Block + PMPM + Clay + Sand + Silt, data = dd_complete)
+```
+
+```{r}
+n <- nobs(m1)
+```
+
+#### Select the best models  
+#### AIC  
+
+$$AIC_M = 2p - 2\log(\hat{L}),$$\
+
+```{r }
+p <- length(coef(m1))+1
+log_lik <- -n / 2 * (log(2 * pi) + log(sum(m1$residuals^2) / n) + 1)
+2*p - 2*log_lik
+```
+
+```{r}
+AIC(m1)
+```
+
+#### BIC  
+
+$$BIC_M = p \cdot log(n) - 2\log(\hat{L}),$$\
+
+```{r}
+# for BIC, k is log(nobs(m1))
+log(nobs(m1))*p - 2*log_lik
+
+AIC(m1, k = log(nobs(m1)))
+BIC(m1)
+```
+
+#### R^2^ and R^2^~adj~  
+
+Recall that  
+$$R^2 = 1-\frac{SSE}{SST}$$
+is considered the proportion of variation in y explained by variation in x (or in my model, if I have more than one predictor).  
+R^2^, however, does not penalize for adding more predictors (i.e., more parameters) and can only increase. We solve this by calculating  
+
+$$R^2_{adj} = R^2 - (1 - R^2) \frac{p-1}{n-p},$$
+where $n$ is the number of observations and $p$ is the number of parameters.  
+
+
+##### Downfalls of using R^2^ for model selection  
+
+- Uncertainty (precision is tricky with small sample size)  
+- Using the same data twice (once to fit the models, then to judge the models!)  
+- [Anscombe's quartet](https://en.wikipedia.org/wiki/Anscombe%27s_quartet)  
+
+
+#### A summary  
+
+```{r}
+summary(m5)
+summary(m6)
+```
+
+```{r}
+metrics <- data.frame(model = c("N_total", 
+                                "N_total + I(N_total^2)",
+                                "N_total + I(N_total^2) + Block",
+                                "N_total + I(N_total^2) + Block + PMPM", 
+                                "N_total + I(N_total^2) + Block + PMPM + Clay", 
+                                "N_total + I(N_total^2) + Block + PMPM + Clay + Sand", 
+                                "N_total + I(N_total^2) + Block + PMPM + Clay + Sand + Silt"),
+                      R2 = c(summary(m0)$r.squared, summary(m1)$r.squared, summary(m2)$r.squared, 
+                             summary(m3)$r.squared, summary(m4)$r.squared, summary(m5)$r.squared, summary(m6)$r.squared),
+                      R2_adj = c(summary(m0)$adj.r.squared, summary(m1)$adj.r.squared, summary(m2)$adj.r.squared,
+                                 summary(m3)$adj.r.squared, summary(m4)$adj.r.squared, summary(m5)$adj.r.squared,
+                                 summary(m6)$adj.r.squared),
+                      AIC = AIC(m0, m1, m2, m3, m4, m5, m6)$AIC,
+                      BIC = BIC(m0, m1, m2, m3, m4, m5, m6)$BIC) %>% 
+  mutate(across(R2:BIC, ~round(., 3)))
+
+knitr::kable(metrics, format = "html")
+```
+
+```{r}
+data_plot <- expand.grid(N_total = seq(0, 300, by = 5), 
+                         Block = 1:4)
+data_plot <- data_plot %>% bind_cols(predict(m2, newdata = data_plot, interval = "confidence"))
+```
+
+```{r}
+dd_complete %>% 
+  ggplot(aes(N_total, gyield_14))+
+  theme_classic()+
+  geom_ribbon(aes(y = fit, ymin = lwr, ymax = upr, group = Block), data = data_plot, alpha = .15)+
+  geom_line(aes(y = fit, group = Block), data = data_plot)+
+  geom_point()+
+  labs(x = expression(Total~N~Applied~(kg~ha^{-1})),
+       y = expression(Grain~Yield~(kg~ha^{-1})))
+```
+
+### A question for the class  
+
+How do you expect the variable selection to change if we add more...   
+
+- sites  
+- years  
+
+::: {.alert .alert-info}
+<strong>Important questions/concepts</strong>
+
+Variable selection - checkpoints  
+
+- How do the predictions compare?   
+- Is the data generation process well represented?  
+- What is the cost/benefit relationship of including certain predictors?  
+
+Watch out with  
+
+- Collinearity  
+- Using the same data twice (once to fit the models, then to judge the models!)     
+
+:::
+
+
+## For next class  
+
+- Read Chapter 8 \& 10  
+- Finish [Assignment 3](https://jlacasa.github.io/stat705_fall2024/assignments/hw3)   

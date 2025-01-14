@@ -1,0 +1,121 @@
+---
+title: "Modeling cheatsheet I"
+format: html
+editor: visual
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part2.csv"
+dd <- read.csv(url)
+
+dd %>% 
+  filter(species %in% c("A")) %>% 
+  ggplot(aes(doy, crown_g))+
+  geom_point(shape = 21, size =3.5, fill = "black")+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+
+## Intercept and slope model  
+
+$$y_i = \beta_0 + \beta_1x_i + \varepsilon_i, \\ \varepsilon_i\sim N(0,\sigma^2) .$$
+
+
+
+```{r}
+m1 <- lm(crown_g ~ doy, data = dd)
+summary(m1)
+```
+
+```{r}
+dd %>% 
+  filter(species %in% c("A")) %>% 
+  ggplot(aes(doy, crown_g))+
+  stat_function(fun = function(x){
+    coef(m1)[1] + coef(m1)[2]*x
+  })+
+  geom_point(shape = 21, size =3.5, fill = "black")+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+
+## Same model, Intercept by treatment  
+
+$$y_{ij} = \beta_{0j} + \beta_1x_{ij} + \varepsilon_{ij}, \\ \varepsilon_{ij}\sim N(0,\sigma^2) .$$
+
+
+
+```{r}
+m2 <- lm(crown_g ~ trt + doy, data = dd)
+summary(m2)
+```
+
+```{r}
+dd %>% 
+  ggplot(aes(doy, crown_g))+
+  stat_function(fun = function(x){
+    coef(m2)[1] + coef(m2)[3]*x
+  })+
+  stat_function(fun = function(x){
+    (coef(m2)[1] + coef(m2)[2]) + coef(m2)[3]*x
+  }, 
+  linetype =2)+
+  geom_point(shape = 21, size =3.5, aes(fill = trt))+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+
+
+## Intercept and slope by treatment  
+
+$$y_{ij} = \beta_{0j} + \beta_{1j} x_{ij} + \varepsilon_{ij}, \\ \varepsilon_{ij}\sim N(0,\sigma^2) .$$
+
+
+
+```{r}
+m3 <- lm(crown_g ~ trt * doy, data = dd)
+summary(m3)
+```
+
+```{r}
+plot_data <- expand.grid(trt=c("ctrl", "flood"), 
+                         doy = min(dd$doy):max(dd$doy))
+plot_data <- plot_data %>% 
+  bind_cols(as.data.frame(predict(m2, newdata = plot_data, interval = "confidence")))
+```
+
+```{r}
+dd %>% 
+  filter(species %in% c("A")) %>% 
+  ggplot(aes(doy, crown_g))+
+  stat_function(fun = function(x){
+    coef(m3)[1] + coef(m3)[3]*x
+  })+
+  stat_function(fun = function(x){
+    (coef(m3)[1] + coef(m3)[2]) + (coef(m3)[3] + coef(m3)[4])*x
+  }, 
+  linetype =2)+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = doy, y = fit, fill = trt), data = plot_data, alpha = .2)+
+  geom_point(shape = 21, size =3.5, aes(fill = trt))+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+

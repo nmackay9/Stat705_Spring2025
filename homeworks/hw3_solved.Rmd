@@ -1,0 +1,140 @@
+---
+title: "Homework 3"
+author: ""
+date: "2024-09-27"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read the data in the chunk below. The data come from of a study that investigated the flood tolerance of three different clover species.  
+The data can be interpreted as arising from an experiment with a 5 $\times$ 2 factorial treatment structure in a completely randomized design with 24 repetitions. The experimental units were pots in the greenhouse. The researchers cultivated the pots under two growing conditions: one was normally irrigated (control treatment), and one was left 12 days under flooded conditions. After the flooding, the researchers measured the aboveground biomass (in grams). 
+The objective of the study is to find out if the flooding treatment affects the plant biomass, and if this effect is different for different species.    
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+```{r }
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_hw3.csv"
+dd <- read.csv(url)
+```
+
+```{r}
+dd %>% 
+  ggplot(aes(species, agb_g))+
+  geom_boxplot(aes(fill = trt))+
+  scale_fill_manual(values = c("#43AA8B", "#DB504A"))+
+  labs(x = "Species", 
+       y = "Aboveground biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+### a. Propose a statistical model (using mathematical notation) to describe the relationship between aboveground biomass, legume species and treatment. Fit that model to the data.  
+
+We can describe the data using the model  
+$$y_{ijk}=\mu + \tau_i +\rho_j + (\tau\rho)_{ij} + \varepsilon_{ijk},$$
+
+where $y_{ijk}$ is the observation of biomass for the $i$th treatment ($i = 1, 2$), the $j$th species ($j = 1, 2, ..., 5$) and $k$th repetition, $\mu$ is the overall mean, $\tau_i$ is the effect of the $i$th treatment, $\rho_j$ is the effect of the $j$th species, $(\tau\rho)_{ij}$ is the interaction between the $i$th treatment and $j$th species, and $\varepsilon_{ijk}$ is the error for the $i$th treatment ($i = 1, 2$), the $j$th species ($j = 1, 2, ..., 5$) and $k$th repetition. We assume that $\varepsilon_{ijk}$ is i.i.d. $\sim N(0, \sigma^2)$.  
+
+```{r}
+m1 <- lm(agb_g ~ trt*species, data = dd)
+car::Anova(m1, type = 2)
+```
+
+
+### b. Mention the assumptions in your model and check them. If you believe one of the assuptions is badly wrong and should be changed, name a possible alternative. (Note: you only have to state if you think they are approximately appropriate or not, and name a possible alternative. You do not need to **do it**!)   
+
+#### The deterministic part of the model   
+
+#### Constant variance  
+
+The plot (and test) below show that there doesn't seem to be a trend of increasing (or decreasing) variance as $\hat{y}$ increases. 
+
+```{r}
+y_hat <- m1$fitted.values
+epsilon_hat <- m1$residuals
+plot(y_hat, abs(epsilon_hat))
+
+summary(lm(abs(epsilon_hat) ~ y_hat))
+```
+
+```{r}
+car::leveneTest(m1)
+```
+
+```{r}
+library(mgcv)
+
+m2 <- gam(list(agb_g ~ trt*species,
+               ~ species),
+          data = dd, 
+          family = gaulss())
+
+
+emmeans::emmeans(m1, ~trt:species)
+emmeans::emmeans(m2, ~trt:species)
+
+summary(m2)
+
+gam.check(m2)
+
+AIC(m1)
+AIC(m2)
+
+BIC(m1)
+BIC(m2)
+
+
+hist(epsilon_hat, main = "Residuals of m1")
+hist(residuals(m2), main = "Residuals of m2")
+```
+
+
+#### Independent residuals   
+
+
+#### Normally sitributed residuals  
+
+Residuals seem approximately normal when looking at both qqplots and histograms of the residuals.   
+```{r}
+hist(epsilon_hat)
+car::qqPlot(epsilon_hat)
+shapiro.test(epsilon_hat)
+```
+
+
+### c. Provide point estimates and 95\% confidence intervals of the different species under both treated and control conditions.  
+```{r}
+newdata <- expand.grid(trt = c("ctrl", "flood"), 
+                       species = c("A", "B", "C", "D", "E"))
+```
+
+```{r}
+newdata %>% 
+  bind_cols(as.data.frame(predict(m1, newdata = newdata, interval = "confidence"))) %>% 
+  mutate(across(fit:upr, ~round(., 2)))
+```
+
+
+## What if we wanted to make post-hoc mean comparisons?  
+
+```{r}
+library(emmeans)
+library(multcomp)
+summary(m1)
+confint(m1)
+means <- emmeans(m1, ~ trt:species)
+
+cld(means, 
+    level = 0.05,
+    adjust = "none",
+    decreasing = TRUE,
+    Letters = letters) %>% 
+  mutate(.group = trimws(.group))
+```
+

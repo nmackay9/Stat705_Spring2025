@@ -1,0 +1,57 @@
+---
+title: "Day 32 - 11/04/2024"
+format: html
+editor: visual
+---
+
+### Generalized linear model (GLM) 
+
+Extending our understanding of how we construct statistical models   
+
+#### Model equation form  
+
+- $y_{ij} = \mu + \tau_i + \varepsilon_{ij}, \ \varepsilon_{ij}\sim N(0,\sigma^2)$  
+
+#### Probability distribution form  
+
+- $y_{ij}\sim N(\mu_{ij},\sigma^2), \ \mu_{ij} = \mu + \tau_i$
+- $y_{ij}\sim N(\mu + \tau_i,\sigma^2)$  
+
+Necessary steps:  
+
+- Identify the probability distribution of $y$  
+- - Define what your model is focusing on (usually the expected value $E(y)$)  
+- State the linear predictor $\eta$  
+- Identify a link function that connects $E(y)$ to the linear predictor  
+
+#### Model equation versus Probability distribution forms  
+
+- Model equation is much more restrictive for non-normal distributions  
+  - What is the residual even?  
+  - $Var(y)$ in other distributions  
+  - 'If the data are not Gaussian, we must make them "act Gaussian"', *essentially amounts to the modeling version of the "when you have a hammer, try to make every problem look like a nail"* ([Stroup et al., 2024](https://www.routledge.com/Generalized-Linear-Mixed-Models-Modern-Concepts-Methods-and-Applications/Stroup-Ptukhina-Garai/p/book/9781498755566?srsltid=AfmBOoo-C2dJm7p5SEH4mizPbgCJC_a8nHQ-mvKc91FaplWRSM499OkL))  
+
+
+### The general linear model as a special case of the GLM   
+
+- Identify the probability distribution of $y$  
+  - $y_i \sim N(\mu_i, \sigma^2)$
+- Define what your model is focusing on: the expected value $E(y)$  
+- State the linear predictor $\eta$  
+  - $\eta_i = \eta + \tau_i$  
+- Identify a link function that connects $E(y)$ to the linear predictor  
+  - "identity function": $\eta_i = \mu_i$
+
+### Applied examples and implications  
+
+On the whiteboard:  
+
+- Modeling proportions     
+- Modeling disease tolerance in plants   
+- Modeling counts of insects   
+
+
+
+
+
+

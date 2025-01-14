@@ -1,0 +1,51 @@
+---
+title: "Day 12 - 09/16/2024"
+format: html
+editor: visual
+---
+
+## From last class  
+
+- Comments about the projects.  
+- Different options for statistical notation.  
+
+## Modeling  
+
+- Clover data  
+- Remember the data from Assignment 1?  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part2.csv"
+dd <- read.csv(url)
+
+dd %>% 
+  filter(species %in% c("A")) %>% 
+  ggplot(aes(doy, crown_g))+
+  geom_point(aes(fill = trt), shape = 21, size =3.5)+
+  scale_fill_manual(values = c("#DB504A", "#43AA8B"))+
+  labs(x = "Day of the Year", 
+       y = "Crown biomass (g)", 
+       fill = "Treatment")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+str(dd)
+```
+
+Possible models?  
+
+```{r}
+m <- lm(crown_g ~ trt + doy, data = dd)
+summary(m)
+```
+
+```{r}
+m <- lm(crown_g ~ trt * doy, data = dd)
+summary(m)
+```
+
+
+

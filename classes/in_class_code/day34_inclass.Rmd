@@ -1,0 +1,62 @@
+---
+title: "In class R script - Day 33"
+author: "Emmanuela van Versendaal"
+date: "11/6/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(agridat)
+
+data(crowder.seeds)
+dd <- crowder.seeds %>% 
+  unite("trt", c(gen, extract), remove = FALSE)
+str(dd)
+
+dd %>% 
+  ggplot(aes(trt, germ, group = plate))+
+  geom_linerange(aes(xmin=trt, xmax =trt, ymin = germ, ymax = n, group = plate), alpha = .85, 
+               position = position_dodge(width = .25))+
+  geom_point(aes(fill = germ/n), shape =21, size =2.5, position = position_dodge(width = .25), alpha = .85)+
+  theme_classic()+
+  scale_fill_viridis_c()+
+  labs(y = "Germination (y, n)",
+       x = "Genotype", 
+       fill = "Germination (%)")+
+  theme(legend.position = "bottom")
+```
+
+```{r}
+library(mgcv)
+
+
+m1 <- gam(cbind(germ, n-germ) # n successes , n failures 
+    ~ 1+extract * gen, 
+    family = binomial(link = "logit"),
+    data =dd)
+summary(m1)
+```
+
+
+```{r}
+dd <- crowder.seeds %>% 
+  unite("trt", c(gen, extract), remove = FALSE) %>% 
+  mutate(germ_prop = ifelse(germ/n!=0, germ/n, .000000001))
+
+hist(dd$germ_prop)
+```
+ 
+```{r}
+m2 <- gam(germ_prop ~ 1+extract*gen,
+    family = betar(link = "logit"),
+    data = dd)
+
+summary(m2)
+```
+ 
+ 

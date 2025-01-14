@@ -1,0 +1,101 @@
+---
+title: "Day 34 - 11/08/2024"
+format: html
+editor: visual
+---
+
+## Announcements  
+
+## Generalized linear model (GLM) 
+
+Necessary steps to define the statistical model:  
+
+- Identify the probability distribution of $y$  
+- Define what your model is focusing on (usually the expected value $E(y)$)  
+- State the linear predictor $\eta$  
+- Identify a link function that connects $E(y)$ to the linear predictor $\eta$  
+
+![Page 60 in [Stroup et al. (2024)](https://www.routledge.com/Generalized-Linear-Mixed-Models-Modern-Concepts-Methods-and-Applications/Stroup-Ptukhina-Garai/p/book/9781498755566?srsltid=AfmBOoo-C2dJm7p5SEH4mizPbgCJC_a8nHQ-mvKc91FaplWRSM499OkL)](misc_plots/GLMM_table.jpg)
+
+### Why the model equation form is unfriendly to non-Gaussian distributions   
+
+
+
+### The exponential family  
+
+In general, the GLM can model any distribution from the exponential family:  
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggpubr)
+
+n <- 2000
+set.seed(42)
+snorm <- rnorm(n, mean = 1, sd = sqrt(1))
+spois <- rpois(n, lambda = 1)
+sbinom <- rbinom(n, size = 12, prob = .3)
+sbeta <- rbeta(n, shape1 = 2, shape2 = 4)
+st <- rt(n, df = 10, ncp = 1)
+sgamma <- rgamma(n, shape = 10, rate = 2)
+
+data.frame(normal = snorm, 
+           poisson = spois, 
+           binomial = sbinom, 
+           beta = sbeta, 
+           t = st, 
+           gamma = sgamma) %>% 
+  pivot_longer(cols = everything()) %>% 
+  mutate(name = factor(name, 
+                       levels = c("normal", "t", "gamma", "beta",
+                                  "poisson", "binomial"))) %>% 
+  ggplot(aes(value))+
+  geom_histogram()+
+  theme_pubclean()+
+  facet_wrap(~name, scales = "free_x")+
+  theme(aspect.ratio = 1)
+```
+
+
+## Applied examples   
+
+### Modeling counts of insects    
+
+[R script](in_class_code/day34_inclass.Rmd)
+
+```{r message=FALSE, warning=FALSE}
+library(agridat)
+
+data(crowder.seeds)
+dd <- crowder.seeds %>% 
+  unite("trt", c(gen, extract), remove = FALSE)
+str(dd)
+
+dd %>% 
+  ggplot(aes(trt, germ, group = plate))+
+  geom_linerange(aes(xmin=trt, xmax =trt, ymin = germ, ymax = n, group = plate), alpha = .85, 
+               position = position_dodge(width = .25))+
+  geom_point(aes(fill = germ/n), shape =21, size =2.5, position = position_dodge(width = .25), alpha = .85)+
+  theme_classic()+
+  scale_fill_viridis_c()+
+  labs(y = "Germination (y, n)",
+       x = "Genotype", 
+       fill = "Germination (%)")+
+  theme(legend.position = "bottom")
+```
+
+```{r message=FALSE, warning=FALSE}
+library(mgcv)
+m1 <- gam(cbind(germ, n-germ) ~ extract*gen + s(plate, bs = "re"),
+          family = binomial(link = "logit"),
+          data = dd)
+
+summary(m1)
+```
+
+
+
+## Next week  
+
+- Monday: Robert will teach R documentation  
+- Monday+Wednesday: work on projects  
+- In exactly 2 weeks: deadline to send your project to your classmates

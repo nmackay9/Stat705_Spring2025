@@ -1,0 +1,72 @@
+---
+title: "Day 16 - in class"
+author: "J Lacasa"
+date: "2024-09-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse) # data wrnagling 
+library(car) # Anova type 2/3 SS
+```
+
+## Data
+```{r message=FALSE, warning=FALSE}
+url <- "https://raw.githubusercontent.com/jlacasa/stat705_fall2024/main/classes/data/lotus_part4.csv"
+dd <- read.csv(url)
+```
+
+## Two-way ANOVA  
+```{r message=FALSE, warning=FALSE}
+dd %>% 
+  ggplot(aes(species, crown_g))+
+  geom_boxplot(aes(fill = trt))+
+  scale_fill_manual(values = c("#43AA8B", "#DB504A"))+
+  labs(x = "Species", 
+       y = "Crown biomass (g)", 
+       fill = "Species")+
+  theme_classic()+
+  theme(aspect.ratio = 1)
+```
+
+### fit the model  
+```{r}
+m1 <- lm(crown_g ~ species + trt + species:trt, data = dd)
+summary(m1)
+m1_residuals <- m1$residuals
+y_hat <- m1$fitted.values
+```
+
+
+### check constant variance
+```{r}
+plot(y_hat, abs(m1_residuals))
+```
+
+```{r}
+summary(lm(abs(m1_residuals) ~ y_hat))
+```
+
+### check normal residuals  
+```{r}
+hist(m1_residuals)
+```
+
+```{r}
+set.seed(2)
+hist(rnorm(72, 0, sqrt(1)))
+```
+
+```{r}
+car::qqPlot(m1_residuals)
+```
+
+```{r}
+shapiro.test(m1_residuals)
+```
+
